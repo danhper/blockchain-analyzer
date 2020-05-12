@@ -44,6 +44,14 @@ func main() {
 					return fetchXRPData(c.String("filepath"), c.Int("start"), c.Int("end"))
 				},
 			},
+			{
+				Name:  "fetch-eos",
+				Flags: addCommonFlags([]cli.Flag{}),
+				Usage: "Fetches EOS data",
+				Action: func(c *cli.Context) error {
+					return fetchEOSData(c.String("filepath"), c.Int("start"), c.Int("end"))
+				},
+			},
 		},
 	}
 

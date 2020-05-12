@@ -1,18 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
 const producerURL string = "https://api.main.alohaeos.com:443"
 
 func fetchBlockWithRetry(client *http.Client, blockNumber, retries int) (result []byte, err error) {
-	resp, err := client.Get(producerURL)
+	url := fmt.Sprintf("%s/v1/chain/get_block/%d", producerURL, blockNumber)
+	resp, err := client.Get(url)
 	if err == nil {
 		result, err = ioutil.ReadAll(resp.Body)
 	}
@@ -27,6 +28,7 @@ func fetchBlock(blockNumber int, writer io.Writer, client *http.Client) error {
 	if err != nil {
 		return err
 	}
+	result = append(result, '\n')
 	_, err = writer.Write(result)
 	return err
 }
@@ -43,7 +45,7 @@ func NewEOSContext(totalCount int) *EOSContext {
 	}
 }
 
-func fetchBatch(filepath string, startBlock, endBlock int, context *EOSContext) error {
+func fetchBatch(filepath string, start, end int, context *EOSContext) error {
 	tr := &http.Transport{
 		MaxIdleConns:       10,
 		IdleConnTimeout:    30 * time.Second,
@@ -51,16 +53,13 @@ func fetchBatch(filepath string, startBlock, endBlock int, context *EOSContext) 
 	}
 	client := &http.Client{Transport: tr}
 
-	gzipFile, err := openGZFile(makeFilename(filepath, startBlock, endBlock))
+	gzipFile, err := openGZFile(makeFilename(filepath, start, end))
 	if err != nil {
 		return err
 	}
 	defer gzipFile.Close()
 
-	ticker := time.NewTicker(time.Millisecond * 10)
-	defer ticker.Stop()
-
-	for block := startBlock; block >= endBlock; block-- {
+	for block := end; block >= start; block-- {
 		if context.doneCount%100 == 0 {
 			log.Printf("%d/%d", context.doneCount, context.totalCount)
 		}
@@ -74,12 +73,13 @@ func fetchBatch(filepath string, startBlock, endBlock int, context *EOSContext) 
 	return nil
 }
 
-func fetchEOSData(filepath string, startBlock, endBlock int, interrupt chan os.Signal) error {
-	totalCount := endBlock - startBlock + 1
+func fetchEOSData(filepath string, start, end int) error {
+	totalCount := end - start + 1
 	context := NewEOSContext(totalCount)
-	for block := endBlock; block >= startBlock; block -= batchSize {
+	log.Printf("fetching %d blocks", totalCount)
+	for block := end; block >= start; block -= batchSize {
 		currentFirst := block - batchSize + 1
-		if err := fetchBatch(filepath, currentFirst, endBlock, context); err != nil {
+		if err := fetchBatch(filepath, currentFirst, block, context); err != nil {
 			return err
 		}
 	}

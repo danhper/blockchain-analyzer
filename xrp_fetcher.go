@@ -124,22 +124,6 @@ type XRPContext struct {
 	totalCount int
 }
 
-// func fetchXRPBatch(filepath string, startLedger, endLedger int, context *XRPContext) bool {
-// 	current := NewXRPSubContext(context.conn, context.doneCount, context.totalCount)
-// 	ret := true
-// 	go fetchLedgers(startLedger, endLedger, filepath, current)
-// 	for {
-// 		select {
-// 		case <-current.done:
-// 			return ret
-// 		case <-context.interrupt:
-// 			close(current.stop)
-// 			ret = false
-// 			log.Println("interrupt")
-// 		}
-// 	}
-// }
-
 func fetchXRPData(filepath string, start, end int) error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
