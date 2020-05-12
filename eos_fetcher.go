@@ -2,35 +2,31 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
 const producerURL string = "https://api.main.alohaeos.com:443"
 
 func fetchBlockWithRetry(client *http.Client, blockNumber, retries int) (result []byte, err error) {
-	url := fmt.Sprintf("%s/v1/chain/get_block/%d", producerURL, blockNumber)
-	resp, err := client.Get(url)
+	url := fmt.Sprintf("%s/v1/chain/get_block", producerURL)
+	data := fmt.Sprintf("{\"block_num_or_id\": %d}", blockNumber)
+	resp, err := client.Post(url, "application/json", strings.NewReader(data))
 	if err == nil {
 		result, err = ioutil.ReadAll(resp.Body)
 	}
 	if err != nil && retries > 0 {
+		log.Printf("error: %s, retrying", err.Error())
 		return fetchBlockWithRetry(client, blockNumber, retries-1)
 	}
 	return
 }
 
-func fetchBlock(blockNumber int, writer io.Writer, client *http.Client) error {
-	result, err := fetchBlockWithRetry(client, blockNumber, 3)
-	if err != nil {
-		return err
-	}
-	result = append(result, '\n')
-	_, err = writer.Write(result)
-	return err
+func fetchBlock(blockNumber int, client *http.Client) ([]byte, error) {
+	return fetchBlockWithRetry(client, blockNumber, 3)
 }
 
 type EOSContext struct {
@@ -45,29 +41,51 @@ func NewEOSContext(totalCount int) *EOSContext {
 	}
 }
 
-func fetchBatch(filepath string, start, end int, context *EOSContext) error {
+func fetchBlocks(blocks <-chan int, results chan<- []byte) {
 	tr := &http.Transport{
 		MaxIdleConns:       10,
 		IdleConnTimeout:    30 * time.Second,
 		DisableCompression: true,
 	}
 	client := &http.Client{Transport: tr}
+	for block := range blocks {
+		result, err := fetchBlock(block, client)
+		if err != nil {
+			log.Printf("could not fetch block %d: %s", block, err.Error())
+		}
+		results <- result
+	}
+}
 
+func fetchBatch(filepath string, start, end int, context *EOSContext) error {
 	gzipFile, err := openGZFile(makeFilename(filepath, start, end))
 	if err != nil {
 		return err
 	}
 	defer gzipFile.Close()
 
+	workersCount := 10
+	blocksCount := end - start + 1
+	jobs := make(chan int, blocksCount)
+	results := make(chan []byte, blocksCount)
+
+	for w := 1; w <= workersCount; w++ {
+		go fetchBlocks(jobs, results)
+	}
+
 	for block := end; block >= start; block-- {
+		jobs <- block
+	}
+	close(jobs)
+	for i := 0; i < blocksCount; i++ {
+		result := <-results
+		result = append(result, '\n')
+		gzipFile.Write(result)
+
+		context.doneCount++
 		if context.doneCount%100 == 0 {
 			log.Printf("%d/%d", context.doneCount, context.totalCount)
 		}
-		err := fetchBlock(block, gzipFile, client)
-		if err != nil {
-			log.Printf("could not fetch block %d: %s", block, err.Error())
-		}
-		context.doneCount++
 	}
 
 	return nil
