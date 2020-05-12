@@ -4,22 +4,51 @@ import (
 	"flag"
 	"log"
 	"os"
-	"os/signal"
+
+	"github.com/urfave/cli/v2"
 )
 
 var start = flag.Int("start", 55406491, "start ledger index")
 var end = flag.Int("end", 1, "last ledger index")
 var filepath = flag.String("filepath", "", "base file path")
 
+func addCommonFlags(flags []cli.Flag) []cli.Flag {
+	return append(flags,
+		&cli.StringFlag{
+			Name:     "filepath, f",
+			Value:    "",
+			Usage:    "Base output filepath",
+			Required: true,
+		},
+		&cli.IntFlag{
+			Name:     "start, s",
+			Required: true,
+			Usage:    "Start block/ledger index",
+		},
+		&cli.IntFlag{
+			Name:     "end, e",
+			Required: true,
+			Usage:    "End block/ledger index",
+		},
+	)
+}
+
 func main() {
-	flag.Parse()
-
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-
-	if *filepath == "" {
-		log.Fatal("filepath not given")
+	app := &cli.App{
+		Commands: []*cli.Command{
+			{
+				Name:  "fetch-xrp",
+				Flags: addCommonFlags([]cli.Flag{}),
+				Usage: "Fetches XRP data",
+				Action: func(c *cli.Context) error {
+					return fetchXRPData(c.String("filepath"), c.Int("start"), c.Int("end"))
+				},
+			},
+		},
 	}
 
-	fetchXRPData(*filepath, *start, *end, interrupt)
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
