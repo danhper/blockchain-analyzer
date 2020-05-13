@@ -9,12 +9,17 @@ import (
 )
 
 const (
-	batchSize int = 100000
+	batchSize uint64 = 100
 )
 
-func makeFilename(filePath string, first, last int) string {
+func makeFilename(filePath string, first, last uint64) string {
 	splitted := strings.SplitN(filePath, ".", 2)
 	return fmt.Sprintf("%s-%d--%d.%s", splitted[0], first, last, splitted[1])
+}
+
+func makeErrFilename(filePath string, first, last uint64) string {
+	splitted := strings.SplitN(filePath, ".", 2)
+	return fmt.Sprintf("%s-%d--%d-errors.%s", splitted[0], first, last, splitted[1])
 }
 
 func openGZFile(name string) (io.WriteCloser, error) {

@@ -41,7 +41,7 @@ func main() {
 				Flags: addCommonFlags([]cli.Flag{}),
 				Usage: "Fetches XRP data",
 				Action: func(c *cli.Context) error {
-					return fetchXRPData(c.String("filepath"), c.Int("start"), c.Int("end"))
+					return fetchXRPData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
 				},
 			},
 			{
@@ -49,7 +49,7 @@ func main() {
 				Flags: addCommonFlags([]cli.Flag{}),
 				Usage: "Fetches EOS data",
 				Action: func(c *cli.Context) error {
-					return fetchEOSData(c.String("filepath"), c.Int("start"), c.Int("end"))
+					return fetchEOSData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
 				},
 			},
 		},

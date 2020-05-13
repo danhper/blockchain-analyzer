@@ -11,7 +11,7 @@ import (
 
 const producerURL string = "https://api.main.alohaeos.com:443"
 
-func fetchBlockWithRetry(client *http.Client, blockNumber, retries int) (result []byte, err error) {
+func fetchBlockWithRetry(client *http.Client, blockNumber uint64, retries int) (result []byte, err error) {
 	url := fmt.Sprintf("%s/v1/chain/get_block", producerURL)
 	data := fmt.Sprintf("{\"block_num_or_id\": %d}", blockNumber)
 	resp, err := client.Post(url, "application/json", strings.NewReader(data))
@@ -25,23 +25,23 @@ func fetchBlockWithRetry(client *http.Client, blockNumber, retries int) (result 
 	return
 }
 
-func fetchBlock(blockNumber int, client *http.Client) ([]byte, error) {
+func fetchBlock(blockNumber uint64, client *http.Client) ([]byte, error) {
 	return fetchBlockWithRetry(client, blockNumber, 3)
 }
 
 type EOSContext struct {
-	doneCount  int
-	totalCount int
+	doneCount  uint64
+	totalCount uint64
 }
 
-func NewEOSContext(totalCount int) *EOSContext {
+func NewEOSContext(totalCount uint64) *EOSContext {
 	return &EOSContext{
 		doneCount:  0,
 		totalCount: totalCount,
 	}
 }
 
-func fetchBlocks(blocks <-chan int, results chan<- []byte) {
+func fetchBlocks(blocks <-chan uint64, results chan<- []byte) {
 	tr := &http.Transport{
 		MaxIdleConns:       10,
 		IdleConnTimeout:    30 * time.Second,
@@ -57,7 +57,7 @@ func fetchBlocks(blocks <-chan int, results chan<- []byte) {
 	}
 }
 
-func fetchBatch(filepath string, start, end int, context *EOSContext) error {
+func fetchBatch(filepath string, start, end uint64, context *EOSContext) error {
 	gzipFile, err := openGZFile(makeFilename(filepath, start, end))
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func fetchBatch(filepath string, start, end int, context *EOSContext) error {
 
 	workersCount := 10
 	blocksCount := end - start + 1
-	jobs := make(chan int, blocksCount)
+	jobs := make(chan uint64, blocksCount)
 	results := make(chan []byte, blocksCount)
 
 	for w := 1; w <= workersCount; w++ {
@@ -77,7 +77,7 @@ func fetchBatch(filepath string, start, end int, context *EOSContext) error {
 		jobs <- block
 	}
 	close(jobs)
-	for i := 0; i < blocksCount; i++ {
+	for i := uint64(0); i < blocksCount; i++ {
 		result := <-results
 		result = append(result, '\n')
 		gzipFile.Write(result)
@@ -91,7 +91,7 @@ func fetchBatch(filepath string, start, end int, context *EOSContext) error {
 	return nil
 }
 
-func fetchEOSData(filepath string, start, end int) error {
+func fetchEOSData(filepath string, start, end uint64) error {
 	totalCount := end - start + 1
 	context := NewEOSContext(totalCount)
 	log.Printf("fetching %d blocks", totalCount)
