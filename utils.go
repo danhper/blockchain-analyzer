@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	batchSize uint64 = 100
+	batchSize uint64 = 100000
 )
 
 func makeFilename(filePath string, first, last uint64) string {

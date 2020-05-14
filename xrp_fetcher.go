@@ -161,8 +161,8 @@ func fetchLedgers(toFetch map[uint64]bool, writer io.Writer, context *XRPContext
 			for index := range written {
 				delete(toFetch, index)
 			}
-			close(quit)
 		}
+		close(quit)
 	}()
 
 	ledgersToFetch := make([]uint64, len(toFetch))
