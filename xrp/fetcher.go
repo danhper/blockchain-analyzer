@@ -53,8 +53,7 @@ func processWSMessages(
 			log.Println("read:", err)
 			return
 		}
-		writer.Write(message)
-		writer.Write([]byte{'\n'})
+		fmt.Fprintf(writer, "%s\n", message)
 
 		ledger, err := ParseRawLedger(message)
 		if err != nil {
@@ -81,13 +80,13 @@ func sendWSMessage(conn *websocket.Conn, ledger uint64) {
 func writeFailed(filePath string, failed map[uint64]bool) error {
 	// write failed blocks
 	var errWriter io.Writer
-	errWriter, err := core.OpenGZFile(filePath)
+	errWriter, err := core.CreateGZFile(filePath)
 	if err != nil {
 		log.Printf("could not open error file: %s", err.Error())
 		return err
 	}
 	for ledger := range failed {
-		errWriter.Write([]byte(fmt.Sprintf("%d\n", ledger)))
+		fmt.Fprintf(errWriter, "%d\n", ledger)
 	}
 	return nil
 }
@@ -97,7 +96,7 @@ func fetchLedgersRange(start, end uint64, filePath string, context *XRPContext) 
 	for ledger := start; ledger <= end; ledger++ {
 		toFetch[ledger] = true
 	}
-	writer, err := core.OpenGZFile(core.MakeFilename(filePath, start, end))
+	writer, err := core.CreateGZFile(core.MakeFilename(filePath, start, end))
 	if err != nil {
 		return false, err
 	}

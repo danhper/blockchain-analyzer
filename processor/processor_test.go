@@ -11,7 +11,8 @@ import (
 func TestComputeBlockNumbers(t *testing.T) {
 	reader := core.GetXRPLedgersReader()
 	blockchain := xrp.New()
-	blocks := ComputeBlockNumbers(reader, blockchain)
+	blocks, err := ComputeBlockNumbers(reader, blockchain)
+	assert.Nil(t, err)
 	assert.Len(t, blocks, 100)
 	assert.Contains(t, blocks, uint64(54387329))
 }
@@ -19,6 +20,7 @@ func TestComputeBlockNumbers(t *testing.T) {
 func TestGetMissingBlockNumbers(t *testing.T) {
 	reader := core.GetXRPLedgersReader()
 	blockchain := xrp.New()
-	missing := GetMissingBlockNumbers(reader, blockchain)
+	missing, err := GetMissingBlockNumbers(reader, blockchain)
+	assert.Nil(t, err)
 	assert.Len(t, missing, 0)
 }

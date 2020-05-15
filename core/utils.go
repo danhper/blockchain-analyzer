@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sort"
 	"strings"
@@ -23,15 +24,32 @@ func MakeErrFilename(filePath string, first, last uint64) string {
 	return fmt.Sprintf("%s-%d--%d-errors.%s", splitted[0], first, last, splitted[1])
 }
 
-func OpenGZFile(name string) (io.WriteCloser, error) {
+func CreateGZFile(name string) (io.WriteCloser, error) {
 	file, err := os.OpenFile(name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	gzipFile := gzip.NewWriter(file)
 	return gzipFile, nil
 }
 
+func OpenGZFile(name string) (io.ReadCloser, error) {
+	file, err := os.Open(name)
+	if err != nil {
+		panic(err)
+	}
+	return gzip.NewReader(file)
+}
+
 func SortU64Slice(values []uint64) {
 	sort.Slice(values, func(i, j int) bool { return values[i] < values[j] })
+}
+
+func MakeFileProcessor(f func(string) error) func(string) {
+	return func(filename string) {
+		log.Printf("processing %s", filename)
+		if err := f(filename); err != nil {
+			log.Printf("error while processing %s: %s", filename, err.Error())
+		}
+	}
 }
