@@ -1,18 +1,13 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"os"
 
 	"github.com/urfave/cli/v2"
 )
 
-var start = flag.Int("start", 55406491, "start ledger index")
-var end = flag.Int("end", 1, "last ledger index")
-var filepath = flag.String("filepath", "", "base file path")
-
-func addCommonFlags(flags []cli.Flag) []cli.Flag {
+func addFetchFlags(flags []cli.Flag) []cli.Flag {
 	return append(flags,
 		&cli.StringFlag{
 			Name:     "filepath, f",
@@ -37,19 +32,23 @@ func main() {
 	app := &cli.App{
 		Commands: []*cli.Command{
 			{
-				Name:  "fetch-xrp",
-				Flags: addCommonFlags([]cli.Flag{}),
-				Usage: "Fetches XRP data",
+				Name:      "fetch",
+				Flags:     addFetchFlags(nil),
+				Usage:     "Fetches blockchain data",
+				ArgsUsage: "(eos | xrp)",
 				Action: func(c *cli.Context) error {
-					return fetchXRPData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
-				},
-			},
-			{
-				Name:  "fetch-eos",
-				Flags: addCommonFlags([]cli.Flag{}),
-				Usage: "Fetches EOS data",
-				Action: func(c *cli.Context) error {
-					return fetchEOSData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
+					if c.NArg() == 0 {
+						cli.ShowSubcommandHelp(c)
+						return cli.NewExitError("missing blockchain argument", 1)
+					}
+					switch c.Args().Get(0) {
+					case "xrp":
+						return fetchXRPData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
+					case "eos":
+						return fetchEOSData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
+					default:
+						return cli.NewExitError("wrong blockchain argument. valid: 'xrp', 'eos'", 1)
+					}
 				},
 			},
 		},

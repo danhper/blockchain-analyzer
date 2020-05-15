@@ -102,7 +102,6 @@ func writeFailed(filePath string, failed map[uint64]bool) error {
 		errWriter.Write([]byte(fmt.Sprintf("%d\n", ledger)))
 	}
 	return nil
-
 }
 
 func fetchLedgersRange(start, end uint64, filePath string, context *XRPContext) (stop bool, err error) {
@@ -137,6 +136,9 @@ func fetchLedgersWithRetry(toFetch map[uint64]bool, writer io.Writer, context *X
 			break
 		}
 		log.Printf("%d items left in batch, retrying", len(toFetch))
+	}
+	if len(toFetch) > 0 {
+		writeFailed("failed.txt.gz", toFetch)
 	}
 
 	return
