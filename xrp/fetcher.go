@@ -1,4 +1,4 @@
-package main
+package xrp
 
 import (
 	"encoding/json"
@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+
+	"github.com/danhper/blockchain-data-fetcher/core"
 )
 
 const (
@@ -93,7 +95,7 @@ func sendWSMessage(conn *websocket.Conn, ledger uint64) {
 func writeFailed(filePath string, failed map[uint64]bool) error {
 	// write failed blocks
 	var errWriter io.Writer
-	errWriter, err := openGZFile(filePath)
+	errWriter, err := core.OpenGZFile(filePath)
 	if err != nil {
 		log.Printf("could not open error file: %s", err.Error())
 		return err
@@ -109,7 +111,7 @@ func fetchLedgersRange(start, end uint64, filePath string, context *XRPContext) 
 	for ledger := start; ledger <= end; ledger++ {
 		toFetch[ledger] = true
 	}
-	writer, err := openGZFile(makeFilename(filePath, start, end))
+	writer, err := core.OpenGZFile(core.MakeFilename(filePath, start, end))
 	if err != nil {
 		return false, err
 	}
@@ -264,8 +266,8 @@ func fetchXRPData(filepath string, start, end uint64) error {
 
 	defer context.Cleanup()
 
-	for ledger := end; ledger >= start; ledger -= batchSize {
-		currentStart := ledger - batchSize + 1
+	for ledger := end; ledger >= start; ledger -= core.BatchSize {
+		currentStart := ledger - core.BatchSize + 1
 		interrupted, err := fetchLedgersRange(currentStart, ledger, filepath, context)
 		if err != nil || interrupted {
 			break

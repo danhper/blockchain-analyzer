@@ -1,4 +1,4 @@
-package main
+package eos
 
 import (
 	"fmt"
@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/danhper/blockchain-data-fetcher/core"
 )
 
 const producerURL string = "https://api.main.alohaeos.com:443"
@@ -58,7 +60,7 @@ func fetchBlocks(blocks <-chan uint64, results chan<- []byte) {
 }
 
 func fetchBatch(filepath string, start, end uint64, context *EOSContext) error {
-	gzipFile, err := openGZFile(makeFilename(filepath, start, end))
+	gzipFile, err := core.OpenGZFile(core.MakeFilename(filepath, start, end))
 	if err != nil {
 		return err
 	}
@@ -95,8 +97,8 @@ func fetchEOSData(filepath string, start, end uint64) error {
 	totalCount := end - start + 1
 	context := NewEOSContext(totalCount)
 	log.Printf("fetching %d blocks", totalCount)
-	for block := end; block >= start; block -= batchSize {
-		currentFirst := block - batchSize + 1
+	for block := end; block >= start; block -= core.BatchSize {
+		currentFirst := block - core.BatchSize + 1
 		if err := fetchBatch(filepath, currentFirst, block, context); err != nil {
 			return err
 		}

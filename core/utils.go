@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"compress/gzip"
@@ -9,20 +9,20 @@ import (
 )
 
 const (
-	batchSize uint64 = 100000
+	BatchSize uint64 = 100000
 )
 
-func makeFilename(filePath string, first, last uint64) string {
+func MakeFilename(filePath string, first, last uint64) string {
 	splitted := strings.SplitN(filePath, ".", 2)
 	return fmt.Sprintf("%s-%d--%d.%s", splitted[0], first, last, splitted[1])
 }
 
-func makeErrFilename(filePath string, first, last uint64) string {
+func MakeErrFilename(filePath string, first, last uint64) string {
 	splitted := strings.SplitN(filePath, ".", 2)
 	return fmt.Sprintf("%s-%d--%d-errors.%s", splitted[0], first, last, splitted[1])
 }
 
-func openGZFile(name string) (io.WriteCloser, error) {
+func OpenGZFile(name string) (io.WriteCloser, error) {
 	file, err := os.OpenFile(name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)

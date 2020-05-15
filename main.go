@@ -1,9 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
+	"github.com/danhper/blockchain-data-fetcher/core"
+	"github.com/danhper/blockchain-data-fetcher/eos"
+	"github.com/danhper/blockchain-data-fetcher/xrp"
 	"github.com/urfave/cli/v2"
 )
 
@@ -28,6 +32,20 @@ func addFetchFlags(flags []cli.Flag) []cli.Flag {
 	)
 }
 
+func blockchainFromCLI(c *cli.Context) (core.Blockchain, error) {
+	if c.NArg() == 0 {
+		return nil, fmt.Errorf("missing blockchain argument")
+	}
+	switch c.Args().Get(0) {
+	case "xrp":
+		return xrp.New(), nil
+	case "eos":
+		return eos.New(), nil
+	default:
+		return nil, fmt.Errorf("wrong blockchain argument. valid: 'xrp', 'eos'")
+	}
+}
+
 func main() {
 	app := &cli.App{
 		Commands: []*cli.Command{
@@ -37,18 +55,12 @@ func main() {
 				Usage:     "Fetches blockchain data",
 				ArgsUsage: "(eos | xrp)",
 				Action: func(c *cli.Context) error {
-					if c.NArg() == 0 {
+					blockchain, err := blockchainFromCLI(c)
+					if err != nil {
 						cli.ShowSubcommandHelp(c)
-						return cli.NewExitError("missing blockchain argument", 1)
+						return cli.NewExitError(err.Error(), 1)
 					}
-					switch c.Args().Get(0) {
-					case "xrp":
-						return fetchXRPData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
-					case "eos":
-						return fetchEOSData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
-					default:
-						return cli.NewExitError("wrong blockchain argument. valid: 'xrp', 'eos'", 1)
-					}
+					return blockchain.FetchData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
 				},
 			},
 		},
