@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -29,4 +30,8 @@ func OpenGZFile(name string) (io.WriteCloser, error) {
 	}
 	gzipFile := gzip.NewWriter(file)
 	return gzipFile, nil
+}
+
+func SortU64Slice(values []uint64) {
+	sort.Slice(values, func(i, j int) bool { return values[i] < values[j] })
 }
