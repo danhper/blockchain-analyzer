@@ -43,20 +43,6 @@ func makeMessage(ledgerIndex uint64) []byte {
 	return message
 }
 
-type XRPLedgerResponse struct {
-	Result struct {
-		LedgerIndex uint64 `json:"ledger_index"`
-	}
-}
-
-func getLedgerIndex(rawResponse []byte) (uint64, error) {
-	var response XRPLedgerResponse
-	if err := json.Unmarshal(rawResponse, &response); err != nil {
-		return 0, err
-	}
-	return response.Result.LedgerIndex, nil
-}
-
 func processWSMessages(
 	conn *websocket.Conn, writer io.Writer, wg *sync.WaitGroup, quit chan struct{}, written chan<- uint64,
 	abort chan<- error) {
@@ -70,11 +56,11 @@ func processWSMessages(
 		writer.Write(message)
 		writer.Write([]byte{'\n'})
 
-		ledgerIndex, err := getLedgerIndex(message)
+		ledger, err := ParseRawLedger(message)
 		if err != nil {
 			log.Printf("error while parsing message: %s", err.Error())
 		}
-		written <- ledgerIndex
+		written <- ledger.Number()
 		wg.Done()
 
 		select {
