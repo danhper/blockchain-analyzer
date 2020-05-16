@@ -62,7 +62,9 @@ func ComputeMissingBlockNumbers(blockNumbers map[uint64]bool, blockchain core.Bl
 	return missing
 }
 
-func OutputAllMissingBlockNumbers(blockchain core.Blockchain, globPattern string, outputPath string) error {
+func OutputAllMissingBlockNumbers(
+	blockchain core.Blockchain, globPattern string,
+	outputPath string, start uint64) error {
 	files, err := filepath.Glob(globPattern)
 	if err != nil {
 		return err
@@ -92,7 +94,9 @@ func OutputAllMissingBlockNumbers(blockchain core.Blockchain, globPattern string
 			invalidFiles <- filename
 		}
 		for number := range numbers {
-			numbersChan <- number
+			if number > start {
+				numbersChan <- number
+			}
 		}
 		return err
 	})

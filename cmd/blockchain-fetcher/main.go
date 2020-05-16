@@ -91,6 +91,12 @@ func main() {
 						Usage:    "Blocks output path",
 						Required: true,
 					},
+					&cli.IntFlag{
+						Name:     "start",
+						Aliases:  []string{"s"},
+						Required: true,
+						Usage:    "Start block/ledger index",
+					},
 				}),
 				Usage: "Checks for missing blocks in data",
 				Action: func(c *cli.Context) error {
@@ -98,7 +104,8 @@ func main() {
 					if err != nil {
 						return err
 					}
-					return processor.OutputAllMissingBlockNumbers(blockchain, c.String("pattern"), c.String("output"))
+					return processor.OutputAllMissingBlockNumbers(
+						blockchain, c.String("pattern"), c.String("output"), c.Uint64("start"))
 				},
 			},
 		},
