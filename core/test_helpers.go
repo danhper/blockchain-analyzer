@@ -2,12 +2,15 @@ package core
 
 import (
 	"bytes"
-	"compress/gzip"
 	"io"
 	"io/ioutil"
-	"os"
 	"path"
 	"runtime"
+)
+
+const (
+	RealLedgersFilename    string = "xrp-ledgers-54387273--54387372.jsonl.gz"
+	MissingLedgersFilename string = "xrp-missing-block.jsonl"
 )
 
 func GetFixturesPath() string {
@@ -19,20 +22,16 @@ func GetFixture(filename string) string {
 	return path.Join(GetFixturesPath(), filename)
 }
 
-func GetXRPLedgersReader() io.ReadCloser {
-	reader, err := os.Open(GetFixture("xrp-ledgers-54387273--54387372.jsonl.gz"))
+func GetXRPLedgersReader(filename string) io.ReadCloser {
+	reader, err := OpenFile(GetFixture(filename))
 	if err != nil {
 		panic(err)
 	}
-	gzipReader, err := gzip.NewReader(reader)
-	if err != nil {
-		panic(err)
-	}
-	return gzipReader
+	return reader
 }
 
 func ReadAllXRPRawLedgers() [][]byte {
-	reader := GetXRPLedgersReader()
+	reader := GetXRPLedgersReader(RealLedgersFilename)
 	defer reader.Close()
 	content, err := ioutil.ReadAll(reader)
 	if err != nil {

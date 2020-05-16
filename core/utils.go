@@ -24,21 +24,26 @@ func MakeErrFilename(filePath string, first, last uint64) string {
 	return fmt.Sprintf("%s-%d--%d-errors.%s", splitted[0], first, last, splitted[1])
 }
 
-func CreateGZFile(name string) (io.WriteCloser, error) {
+func CreateFile(name string) (io.WriteCloser, error) {
 	file, err := os.OpenFile(name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, err
 	}
-	gzipFile := gzip.NewWriter(file)
-	return gzipFile, nil
+	if strings.HasSuffix(name, ".gz") {
+		return gzip.NewWriter(file), nil
+	}
+	return file, nil
 }
 
-func OpenGZFile(name string) (io.ReadCloser, error) {
+func OpenFile(name string) (io.ReadCloser, error) {
 	file, err := os.Open(name)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return gzip.NewReader(file)
+	if strings.HasSuffix(name, ".gz") {
+		return gzip.NewReader(file)
+	}
+	return file, nil
 }
 
 func SortU64Slice(values []uint64) {

@@ -80,7 +80,7 @@ func sendWSMessage(conn *websocket.Conn, ledger uint64) {
 func writeFailed(filePath string, failed map[uint64]bool) error {
 	// write failed blocks
 	var errWriter io.Writer
-	errWriter, err := core.CreateGZFile(filePath)
+	errWriter, err := core.CreateFile(filePath)
 	if err != nil {
 		log.Printf("could not open error file: %s", err.Error())
 		return err
@@ -96,7 +96,7 @@ func fetchLedgersRange(start, end uint64, filePath string, context *XRPContext) 
 	for ledger := start; ledger <= end; ledger++ {
 		toFetch[ledger] = true
 	}
-	writer, err := core.CreateGZFile(core.MakeFilename(filePath, start, end))
+	writer, err := core.CreateFile(core.MakeFilename(filePath, start, end))
 	if err != nil {
 		return false, err
 	}

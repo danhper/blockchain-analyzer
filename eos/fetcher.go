@@ -60,7 +60,7 @@ func fetchBlocks(blocks <-chan uint64, results chan<- []byte) {
 }
 
 func fetchBatch(filepath string, start, end uint64, context *EOSContext) error {
-	gzipFile, err := core.CreateGZFile(core.MakeFilename(filepath, start, end))
+	gzipFile, err := core.CreateFile(core.MakeFilename(filepath, start, end))
 	if err != nil {
 		return err
 	}
