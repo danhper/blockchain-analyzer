@@ -25,7 +25,7 @@ func MakeErrFilename(filePath string, first, last uint64) string {
 }
 
 func CreateFile(name string) (io.WriteCloser, error) {
-	file, err := os.OpenFile(name, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(name, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return nil, err
 	}
