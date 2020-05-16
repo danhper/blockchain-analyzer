@@ -99,6 +99,9 @@ func fetchEOSData(filepath string, start, end uint64) error {
 	log.Printf("fetching %d blocks", totalCount)
 	for block := end; block >= start; block -= core.BatchSize {
 		currentFirst := block - core.BatchSize + 1
+		if currentFirst < start {
+			currentFirst = start
+		}
 		if err := fetchBatch(filepath, currentFirst, block, context); err != nil {
 			return err
 		}
