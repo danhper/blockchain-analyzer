@@ -55,6 +55,8 @@ func MakeFileProcessor(f func(string) error) func(string) {
 		log.Printf("processing %s", filename)
 		if err := f(filename); err != nil {
 			log.Printf("error while processing %s: %s", filename, err.Error())
+		} else {
+			log.Printf("done processing %s", filename)
 		}
 	}
 }
