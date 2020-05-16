@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.14
+
+    working_directory: /go/src/github.com/danhper/blockchain-data-fetcher
+    steps:
+      - checkout
+
+      - run:
+          name: fetch dependencies
+          command: go get -v -t -d ./...
+      - run:
+          name: run tests
+          command: go test -v ./...
