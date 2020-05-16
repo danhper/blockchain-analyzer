@@ -41,11 +41,7 @@ func ComputeBlockNumbers(reader io.Reader, blockchain core.Blockchain) (map[uint
 	return blockNumbers, lastError
 }
 
-func GetMissingBlockNumbers(reader io.Reader, blockchain core.Blockchain) ([]uint64, error) {
-	blockNumbers, err := ComputeBlockNumbers(reader, blockchain)
-	if blockNumbers == nil {
-		return []uint64{}, err
-	}
+func ComputeMissingBlockNumbers(blockNumbers map[uint64]bool, blockchain core.Blockchain) []uint64 {
 	minNumber, maxNumber := uint64(math.MaxUint64), uint64(0)
 	for blockNumber := range blockNumbers {
 		if blockNumber > maxNumber {
@@ -63,7 +59,7 @@ func GetMissingBlockNumbers(reader io.Reader, blockchain core.Blockchain) ([]uin
 		}
 	}
 
-	return missing, err
+	return missing
 }
 
 func OutputAllMissingBlockNumbers(blockchain core.Blockchain, globPattern string, outputPath string) error {
@@ -78,7 +74,7 @@ func OutputAllMissingBlockNumbers(blockchain core.Blockchain, globPattern string
 		return err
 	}
 	log.Printf("starting for %d files", len(files))
-	missing := make(chan uint64)
+	numbersChan := make(chan uint64)
 	invalidFiles := make(chan string)
 
 	var wg sync.WaitGroup
@@ -91,21 +87,23 @@ func OutputAllMissingBlockNumbers(blockchain core.Blockchain, globPattern string
 			return err
 		}
 		defer reader.Close()
-		numbers, err := GetMissingBlockNumbers(reader, blockchain)
+		numbers, err := ComputeBlockNumbers(reader, blockchain)
 		if err != nil {
 			invalidFiles <- filename
 		}
-		for _, number := range numbers {
-			missing <- number
+		for number := range numbers {
+			numbersChan <- number
 		}
 		return err
 	})
 
+	blockNumbers := make(map[uint64]bool)
+
 	var writeWg sync.WaitGroup
 	go func() {
 		defer writeWg.Done()
-		for blockNumber := range missing {
-			fmt.Fprintf(outputFile, "{\"block\": %d}\n", blockNumber)
+		for blockNumber := range numbersChan {
+			blockNumbers[blockNumber] = true
 		}
 	}()
 	go func() {
@@ -122,9 +120,14 @@ func OutputAllMissingBlockNumbers(blockchain core.Blockchain, globPattern string
 	}
 	wg.Wait()
 
-	close(missing)
+	close(numbersChan)
 	close(invalidFiles)
 	writeWg.Wait()
+
+	missing := ComputeMissingBlockNumbers(blockNumbers, blockchain)
+	for _, number := range missing {
+		fmt.Fprintf(outputFile, "{\"block\": %d}\n", number)
+	}
 
 	return nil
 }

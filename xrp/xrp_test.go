@@ -8,7 +8,7 @@ import (
 )
 
 func TestParseRawLedger(t *testing.T) {
-	rawLedger := core.ReadAllXRPRawLedgers()[0]
+	rawLedger := core.ReadAllBlocks("xrp")[0]
 	ledger, err := ParseRawLedger(rawLedger)
 
 	assert.Nil(t, err)

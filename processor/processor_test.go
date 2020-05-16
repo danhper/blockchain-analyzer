@@ -9,7 +9,7 @@ import (
 )
 
 func TestComputeBlockNumbers(t *testing.T) {
-	reader := core.GetXRPLedgersReader(core.RealLedgersFilename)
+	reader := core.GetFixtureReader(core.XRPValidLedgersFilename)
 	blockchain := xrp.New()
 	blocks, err := ComputeBlockNumbers(reader, blockchain)
 	assert.Nil(t, err)
@@ -18,18 +18,20 @@ func TestComputeBlockNumbers(t *testing.T) {
 }
 
 func TestGetMissingBlockNumbersValid(t *testing.T) {
-	reader := core.GetXRPLedgersReader(core.RealLedgersFilename)
+	reader := core.GetFixtureReader(core.XRPValidLedgersFilename)
 	blockchain := xrp.New()
-	missing, err := GetMissingBlockNumbers(reader, blockchain)
+	blockNumbers, err := ComputeBlockNumbers(reader, blockchain)
 	assert.Nil(t, err)
+	missing := ComputeMissingBlockNumbers(blockNumbers, blockchain)
 	assert.Len(t, missing, 0)
 }
 
 func TestGetMissingBlockNumbersInvalid(t *testing.T) {
-	reader := core.GetXRPLedgersReader(core.MissingLedgersFilename)
+	reader := core.GetFixtureReader(core.XRPMissingLedgersFilename)
 	blockchain := xrp.New()
-	missing, err := GetMissingBlockNumbers(reader, blockchain)
+	blockNumbers, err := ComputeBlockNumbers(reader, blockchain)
 	assert.Nil(t, err)
+	missing := ComputeMissingBlockNumbers(blockNumbers, blockchain)
 	assert.Len(t, missing, 1)
 	assert.Equal(t, missing[0], uint64(124))
 }

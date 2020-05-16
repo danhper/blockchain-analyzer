@@ -9,8 +9,10 @@ import (
 )
 
 const (
-	RealLedgersFilename    string = "xrp-ledgers-54387273--54387372.jsonl.gz"
-	MissingLedgersFilename string = "xrp-missing-block.jsonl"
+	XRPValidLedgersFilename   string = "xrp-ledgers-54387273--54387372.jsonl.gz"
+	XRPMissingLedgersFilename string = "xrp-missing-block.jsonl"
+
+	EOSValidBlocksFilename string = "eos-blocks-120893532--120893631.jsonl.gz"
 )
 
 func GetFixturesPath() string {
@@ -22,7 +24,7 @@ func GetFixture(filename string) string {
 	return path.Join(GetFixturesPath(), filename)
 }
 
-func GetXRPLedgersReader(filename string) io.ReadCloser {
+func GetFixtureReader(filename string) io.ReadCloser {
 	reader, err := OpenFile(GetFixture(filename))
 	if err != nil {
 		panic(err)
@@ -30,8 +32,27 @@ func GetXRPLedgersReader(filename string) io.ReadCloser {
 	return reader
 }
 
-func ReadAllXRPRawLedgers() [][]byte {
-	reader := GetXRPLedgersReader(RealLedgersFilename)
+func ReadAllBlocks(blockchainName string) [][]byte {
+	var filename string
+	switch blockchainName {
+	case "eos":
+		filename = EOSValidBlocksFilename
+	case "xrp":
+		filename = XRPValidLedgersFilename
+	default:
+		panic("invalid blockchain: " + blockchainName)
+	}
+	reader := GetFixtureReader(filename)
+	defer reader.Close()
+	content, err := ioutil.ReadAll(reader)
+	if err != nil {
+		panic(err)
+	}
+	return bytes.Split(content, []byte{'\n'})
+}
+
+func ReadAllEOSBlocks() [][]byte {
+	reader := GetFixtureReader(EOSValidBlocksFilename)
 	defer reader.Close()
 	content, err := ioutil.ReadAll(reader)
 	if err != nil {

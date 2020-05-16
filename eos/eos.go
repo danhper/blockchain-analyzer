@@ -1,16 +1,19 @@
 package eos
 
-import "github.com/danhper/blockchain-data-fetcher/core"
+import (
+	"encoding/json"
 
-type EOS struct {
-}
+	"github.com/danhper/blockchain-data-fetcher/core"
+)
+
+type EOS struct{}
 
 func (e *EOS) FetchData(filepath string, start, end uint64) error {
 	return fetchEOSData(filepath, start, end)
 }
 
 type Block struct {
-	BlockNumber uint64
+	BlockNumber uint64 `json:"block_num"`
 }
 
 func (b *Block) Number() uint64 {
@@ -22,5 +25,9 @@ func New() *EOS {
 }
 
 func (e *EOS) ParseBlock(rawLine []byte) (core.Block, error) {
-	return &Block{BlockNumber: 0}, nil
+	var block Block
+	if err := json.Unmarshal(rawLine, &block); err != nil {
+		return nil, err
+	}
+	return &block, nil
 }
