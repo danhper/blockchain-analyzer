@@ -45,7 +45,6 @@ func ComputeBlockNumbers(reader io.Reader, blockchain core.Blockchain) (map[uint
 
 func GetMissingBlockNumbers(reader io.Reader, blockchain core.Blockchain) ([]uint64, error) {
 	blockNumbers, err := ComputeBlockNumbers(reader, blockchain)
-	fmt.Println(blockNumbers)
 	minNumber, maxNumber := uint64(math.MaxUint64), uint64(0)
 	for blockNumber := range blockNumbers {
 		if blockNumber > maxNumber {
