@@ -1,4 +1,7 @@
-all: build test
+all: deps build test
+
+deps:
+	@go get ./...
 
 build:
 	@go build -o . ./...

@@ -15,8 +15,8 @@ import (
 func addFetchFlags(flags []cli.Flag) []cli.Flag {
 	return append(flags,
 		&cli.StringFlag{
-			Name:     "filepath",
-			Aliases:  []string{"f"},
+			Name:     "output",
+			Aliases:  []string{"o"},
 			Value:    "",
 			Usage:    "Base output filepath",
 			Required: true,
@@ -74,7 +74,7 @@ func main() {
 					if err != nil {
 						return err
 					}
-					return blockchain.FetchData(c.String("filepath"), c.Uint64("start"), c.Uint64("end"))
+					return blockchain.FetchData(c.String("output"), c.Uint64("start"), c.Uint64("end"))
 				},
 			},
 			{
