@@ -12,7 +12,8 @@ const (
 	XRPValidLedgersFilename   string = "xrp-ledgers-54387273--54387372.jsonl.gz"
 	XRPMissingLedgersFilename string = "xrp-missing-block.jsonl"
 
-	EOSValidBlocksFilename string = "eos-blocks-120893532--120893631.jsonl.gz"
+	EOSValidBlocksFilename   string = "eos-blocks-120893532--120893631.jsonl.gz"
+	TezosValidBlocksFilename string = "tezos-blocks.jsonl"
 )
 
 func GetFixturesPath() string {
@@ -39,6 +40,8 @@ func ReadAllBlocks(blockchainName string) [][]byte {
 		filename = EOSValidBlocksFilename
 	case "xrp":
 		filename = XRPValidLedgersFilename
+	case "tezos":
+		filename = TezosValidBlocksFilename
 	default:
 		panic("invalid blockchain: " + blockchainName)
 	}

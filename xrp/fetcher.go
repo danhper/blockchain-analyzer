@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	wsURI    string = "wss://xrpl.ws"
-	maxTries int    = 5
+	defaultWSURI string = "wss://xrpl.ws"
+	maxTries     int    = 5
 )
 
 type WSError struct {
@@ -209,23 +209,25 @@ func closeConnection(conn *websocket.Conn) {
 }
 
 type XRPContext struct {
+	wsURI      string
 	conn       *websocket.Conn
 	interrupt  chan os.Signal
 	doneCount  int
 	totalCount uint64
 }
 
-func NewXRPContext(interrupt chan os.Signal, totalCount uint64) (*XRPContext, error) {
+func NewXRPContext(interrupt chan os.Signal, wsURI string, totalCount uint64) (*XRPContext, error) {
 	context := &XRPContext{
 		interrupt:  interrupt,
 		doneCount:  0,
+		wsURI:      wsURI,
 		totalCount: totalCount,
 	}
 	return context, context.Reconnect()
 }
 
 func (c *XRPContext) Reconnect() (err error) {
-	c.conn, _, err = websocket.DefaultDialer.Dial(wsURI, nil)
+	c.conn, _, err = websocket.DefaultDialer.Dial(c.wsURI, nil)
 	return
 }
 
@@ -241,8 +243,13 @@ func fetchXRPData(filepath string, start, end uint64) error {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
+	wsURI := os.Getenv("XRP_WS_URI")
+	if wsURI == "" {
+		wsURI = defaultWSURI
+	}
+
 	totalCount := end - start + 1
-	context, err := NewXRPContext(interrupt, totalCount)
+	context, err := NewXRPContext(interrupt, wsURI, totalCount)
 	if err != nil {
 		log.Fatalln(err.Error())
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/danhper/blockchain-data-fetcher/core"
 	"github.com/danhper/blockchain-data-fetcher/eos"
 	"github.com/danhper/blockchain-data-fetcher/processor"
+	"github.com/danhper/blockchain-data-fetcher/tezos"
 	"github.com/danhper/blockchain-data-fetcher/xrp"
 	"github.com/urfave/cli/v2"
 )
@@ -53,9 +54,11 @@ func blockchainFromCLI(c *cli.Context) (core.Blockchain, error) {
 		return xrp.New(), nil
 	case "eos":
 		return eos.New(), nil
+	case "tezos":
+		return tezos.New(), nil
 	default:
 		cli.ShowSubcommandHelp(c)
-		return nil, cli.NewExitError("wrong blockchain argument. valid: 'xrp', 'eos'", 1)
+		return nil, cli.NewExitError("wrong blockchain argument. valid: 'xrp', 'eos', 'tezos'", 1)
 	}
 }
 
