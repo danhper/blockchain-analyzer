@@ -57,6 +57,9 @@ func YieldAllBlocks(
 	log.Printf("starting for %d files", len(files))
 	blocks := make(chan core.Block)
 
+	processed := 0
+	fileDone := make(chan bool)
+
 	var wg sync.WaitGroup
 	run := core.MakeFileProcessor(func(filename string) error {
 		defer wg.Done()
@@ -70,6 +73,7 @@ func YieldAllBlocks(
 				blocks <- block
 			}
 		}
+		fileDone <- true
 		return err
 	})
 
@@ -79,8 +83,16 @@ func YieldAllBlocks(
 	}
 
 	go func() {
+		for range fileDone {
+			processed++
+			log.Printf("files processed: %d/%d", processed, len(files))
+		}
+	}()
+
+	go func() {
 		wg.Wait()
 		close(blocks)
+		close(fileDone)
 	}()
 
 	return blocks, nil
