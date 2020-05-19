@@ -1,7 +1,6 @@
 package xrp
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"

@@ -1,15 +1,18 @@
 package eos
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
 
+	jsoniter "github.com/json-iterator/go"
+
 	"github.com/danhper/blockchain-data-fetcher/core"
 	"github.com/danhper/blockchain-data-fetcher/fetcher"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const defaultProducerURL string = "https://api.main.alohaeos.com:443"
 

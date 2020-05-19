@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/gorilla/websocket v1.4.2
+	github.com/json-iterator/go v1.1.9
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mdempsky/gocode v0.0.0-20200405233807-4acdcbdea79d // indirect
 	github.com/motemen/go-quickfix v0.0.0-20200118031250-2a6e54e79a50 // indirect

@@ -99,7 +99,7 @@ func main() {
 			},
 			{
 				Name:  "check",
-				Flags: addBlockchainFlag(addStartFlag(addOutputFlag(addPatternFlag(nil)), true)),
+				Flags: addBlockchainFlag(addStartFlag(addOutputFlag(addPatternFlag(nil)), false)),
 				Usage: "Checks for missing blocks in data",
 				Action: func(c *cli.Context) error {
 					blockchain, err := blockchainFromCLI(c)

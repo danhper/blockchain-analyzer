@@ -1,10 +1,12 @@
 package xrp
 
 import (
-	"encoding/json"
+	jsoniter "github.com/json-iterator/go"
 
 	"github.com/danhper/blockchain-data-fetcher/core"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type XRP struct {
 }

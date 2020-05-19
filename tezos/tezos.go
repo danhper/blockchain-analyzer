@@ -1,14 +1,17 @@
 package tezos
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 
+	jsoniter "github.com/json-iterator/go"
+
 	"github.com/danhper/blockchain-data-fetcher/core"
 	"github.com/danhper/blockchain-data-fetcher/fetcher"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const defaultRPCEndpoint string = "http://localhost:8732"
 
