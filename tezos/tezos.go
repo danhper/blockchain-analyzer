@@ -26,14 +26,27 @@ func (t *Tezos) FetchData(filepath string, start, end uint64) error {
 	return fetcher.FetchHTTPData(filepath, context)
 }
 
+type Operation struct {
+	Hash string
+}
+
 type Block struct {
 	Header struct {
 		Level uint64
 	}
+	Operations [][]Operation
 }
 
 func (b *Block) Number() uint64 {
 	return b.Header.Level
+}
+
+func (b *Block) TransactionsCount() int {
+	total := 0
+	for _, operations := range b.Operations {
+		total += len(operations)
+	}
+	return total
 }
 
 func New() *Tezos {

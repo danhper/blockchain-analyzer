@@ -13,13 +13,19 @@ func New() *XRP {
 	return &XRP{}
 }
 
+type Transaction struct {
+	Account string
+}
+
 type Ledger struct {
-	Index uint64
+	Index        uint64
+	Transactions []Transaction
 }
 
 type XRPLedgerResponse struct {
 	Result struct {
 		LedgerIndex uint64 `json:"ledger_index"`
+		Ledger      Ledger
 	}
 }
 
@@ -28,8 +34,8 @@ func ParseRawLedger(rawLedger []byte) (*Ledger, error) {
 	if err := json.Unmarshal(rawLedger, &response); err != nil {
 		return nil, err
 	}
-	ledgerIndex := response.Result.LedgerIndex
-	return &Ledger{Index: ledgerIndex}, nil
+	response.Result.Ledger.Index = response.Result.LedgerIndex
+	return &response.Result.Ledger, nil
 }
 
 func (e *XRP) ParseBlock(rawLine []byte) (core.Block, error) {
@@ -42,4 +48,8 @@ func (e *XRP) FetchData(filepath string, start, end uint64) error {
 
 func (l *Ledger) Number() uint64 {
 	return l.Index
+}
+
+func (l *Ledger) TransactionsCount() int {
+	return len(l.Transactions)
 }

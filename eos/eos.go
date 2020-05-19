@@ -28,12 +28,21 @@ func (e *EOS) FetchData(filepath string, start, end uint64) error {
 	return fetcher.FetchHTTPData(filepath, context)
 }
 
+type Transaction struct {
+	Status string
+}
+
 type Block struct {
-	BlockNumber uint64 `json:"block_num"`
+	BlockNumber  uint64 `json:"block_num"`
+	Transactions []Transaction
 }
 
 func (b *Block) Number() uint64 {
 	return b.BlockNumber
+}
+
+func (b *Block) TransactionsCount() int {
+	return len(b.Transactions)
 }
 
 func New() *EOS {

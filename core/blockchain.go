@@ -7,4 +7,5 @@ type Blockchain interface {
 
 type Block interface {
 	Number() uint64
+	TransactionsCount() int
 }

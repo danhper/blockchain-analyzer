@@ -11,8 +11,7 @@ import (
 func TestComputeBlockNumbers(t *testing.T) {
 	reader := core.GetFixtureReader(core.XRPValidLedgersFilename)
 	blockchain := xrp.New()
-	blocks, err := ComputeBlockNumbers(reader, blockchain)
-	assert.Nil(t, err)
+	blocks := ComputeBlockNumbers(reader, blockchain)
 	assert.Len(t, blocks, 100)
 	assert.Contains(t, blocks, uint64(54387329))
 }
@@ -20,8 +19,7 @@ func TestComputeBlockNumbers(t *testing.T) {
 func TestGetMissingBlockNumbersValid(t *testing.T) {
 	reader := core.GetFixtureReader(core.XRPValidLedgersFilename)
 	blockchain := xrp.New()
-	blockNumbers, err := ComputeBlockNumbers(reader, blockchain)
-	assert.Nil(t, err)
+	blockNumbers := ComputeBlockNumbers(reader, blockchain)
 	missing := ComputeMissingBlockNumbers(blockNumbers, blockchain)
 	assert.Len(t, missing, 0)
 }
@@ -29,9 +27,16 @@ func TestGetMissingBlockNumbersValid(t *testing.T) {
 func TestGetMissingBlockNumbersInvalid(t *testing.T) {
 	reader := core.GetFixtureReader(core.XRPMissingLedgersFilename)
 	blockchain := xrp.New()
-	blockNumbers, err := ComputeBlockNumbers(reader, blockchain)
-	assert.Nil(t, err)
+	blockNumbers := ComputeBlockNumbers(reader, blockchain)
 	missing := ComputeMissingBlockNumbers(blockNumbers, blockchain)
 	assert.Len(t, missing, 1)
 	assert.Equal(t, missing[0], uint64(124))
+}
+
+func TestCountTransactions(t *testing.T) {
+	blockchain := xrp.New()
+	filepath := core.GetFixture(core.XRPValidLedgersFilename)
+	count, err := CountTransactions(blockchain, filepath, uint64(0), uint64(0))
+	assert.Nil(t, err)
+	assert.Equal(t, 4518, count)
 }

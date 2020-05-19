@@ -12,5 +12,6 @@ func TestParseRawLedger(t *testing.T) {
 	ledger, err := ParseRawLedger(rawLedger)
 
 	assert.Nil(t, err)
-	assert.Equal(t, ledger.Number(), uint64(54387329))
+	assert.Equal(t, uint64(54387329), ledger.Number())
+	assert.Equal(t, 33, ledger.TransactionsCount())
 }

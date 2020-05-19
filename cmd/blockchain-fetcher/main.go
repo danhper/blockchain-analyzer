@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -12,28 +13,47 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+func addStartFlag(flags []cli.Flag, required bool) []cli.Flag {
+	return append(flags, &cli.IntFlag{
+		Name:     "start",
+		Aliases:  []string{"s"},
+		Required: required,
+		Value:    0,
+		Usage:    "Start block/ledger index",
+	})
+}
+
+func addEndFlag(flags []cli.Flag, required bool) []cli.Flag {
+	return append(flags, &cli.IntFlag{
+		Name:     "end",
+		Aliases:  []string{"e"},
+		Required: required,
+		Value:    0,
+		Usage:    "End block/ledger index",
+	})
+}
+
+func addOutputFlag(flags []cli.Flag) []cli.Flag {
+	return append(flags, &cli.StringFlag{
+		Name:     "output",
+		Aliases:  []string{"o"},
+		Usage:    "Base output filepath",
+		Required: true,
+	})
+}
+
 func addFetchFlags(flags []cli.Flag) []cli.Flag {
-	return append(flags,
-		&cli.StringFlag{
-			Name:     "output",
-			Aliases:  []string{"o"},
-			Value:    "",
-			Usage:    "Base output filepath",
-			Required: true,
-		},
-		&cli.IntFlag{
-			Name:     "start",
-			Aliases:  []string{"s"},
-			Required: true,
-			Usage:    "Start block/ledger index",
-		},
-		&cli.IntFlag{
-			Name:     "end",
-			Aliases:  []string{"e"},
-			Required: true,
-			Usage:    "End block/ledger index",
-		},
-	)
+	return addStartFlag(addEndFlag(addOutputFlag(flags), true), true)
+}
+
+func addPatternFlag(flags []cli.Flag) []cli.Flag {
+	return append(flags, &cli.StringFlag{
+		Name:     "pattern",
+		Aliases:  []string{"p"},
+		Value:    "",
+		Usage:    "Patterns of files to check",
+		Required: true,
+	})
 }
 
 func addBlockchainFlag(flags []cli.Flag) []cli.Flag {
@@ -78,29 +98,8 @@ func main() {
 				},
 			},
 			{
-				Name: "check",
-				Flags: addBlockchainFlag([]cli.Flag{
-					&cli.StringFlag{
-						Name:     "pattern",
-						Aliases:  []string{"p"},
-						Value:    "",
-						Usage:    "Patterns of files to check",
-						Required: true,
-					},
-					&cli.StringFlag{
-						Name:     "output",
-						Aliases:  []string{"o"},
-						Value:    "",
-						Usage:    "Blocks output path",
-						Required: true,
-					},
-					&cli.IntFlag{
-						Name:     "start",
-						Aliases:  []string{"s"},
-						Required: true,
-						Usage:    "Start block/ledger index",
-					},
-				}),
+				Name:  "check",
+				Flags: addBlockchainFlag(addStartFlag(addOutputFlag(addPatternFlag(nil)), true)),
 				Usage: "Checks for missing blocks in data",
 				Action: func(c *cli.Context) error {
 					blockchain, err := blockchainFromCLI(c)
@@ -109,6 +108,26 @@ func main() {
 					}
 					return processor.OutputAllMissingBlockNumbers(
 						blockchain, c.String("pattern"), c.String("output"), c.Uint64("start"))
+				},
+			},
+			{
+				Name: "count-transactions",
+				Flags: addBlockchainFlag(addEndFlag(
+					addStartFlag(addPatternFlag(nil), false), false)),
+				Usage: "Count the number of transactions in the data",
+				Action: func(c *cli.Context) error {
+					blockchain, err := blockchainFromCLI(c)
+					if err != nil {
+						return err
+					}
+					count, err := processor.CountTransactions(
+						blockchain, c.String("pattern"),
+						c.Uint64("start"), c.Uint64("end"))
+					if err != nil {
+						return err
+					}
+					fmt.Printf("found %d transactions\n", count)
+					return nil
 				},
 			},
 		},

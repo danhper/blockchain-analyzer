@@ -13,4 +13,5 @@ func TestParseBlock(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, uint64(10000), block.Number())
+	assert.Equal(t, 8, block.TransactionsCount())
 }

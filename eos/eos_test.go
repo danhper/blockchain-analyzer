@@ -12,5 +12,6 @@ func TestParseBlock(t *testing.T) {
 	ledger, err := New().ParseBlock(rawBlock)
 
 	assert.Nil(t, err)
-	assert.Equal(t, ledger.Number(), uint64(120893628))
+	assert.Equal(t, uint64(120893628), ledger.Number())
+	assert.Equal(t, 8, ledger.TransactionsCount())
 }
