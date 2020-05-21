@@ -17,11 +17,12 @@ func fetchBlockWithRetry(
 	blockNumber uint64, retries int,
 ) (result []byte, err error) {
 	resp, err := context.MakeRequest(client, blockNumber)
-	if err == nil {
+	if err == nil && resp.StatusCode == 200 {
 		result, err = ioutil.ReadAll(resp.Body)
 	}
-	if err != nil && retries > 0 {
-		log.Printf("error: %s, retrying", err.Error())
+	if (err != nil || resp.StatusCode != 200) && retries > 0 {
+		log.Printf("error: %s (status %d), retrying", err.Error(), resp.StatusCode)
+		time.Sleep(time.Second)
 		return fetchBlockWithRetry(client, context, blockNumber, retries-1)
 	}
 	return
