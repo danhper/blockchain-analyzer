@@ -13,7 +13,7 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-const defaultRPCEndpoint string = "http://localhost:8732"
+const defaultRPCEndpoint string = "https://rpcproxy.tulip.tools/mainnet"
 
 type Tezos struct {
 	RPCEndpoint string
