@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math"
 	"path/filepath"
 	"sync"
 
@@ -106,19 +105,9 @@ func ComputeBlockNumbers(reader io.Reader, blockchain core.Blockchain) map[uint6
 	return blockNumbers
 }
 
-func ComputeMissingBlockNumbers(blockNumbers map[uint64]bool, blockchain core.Blockchain) []uint64 {
-	minNumber, maxNumber := uint64(math.MaxUint64), uint64(0)
-	for blockNumber := range blockNumbers {
-		if blockNumber > maxNumber {
-			maxNumber = blockNumber
-		}
-		if blockNumber < minNumber {
-			minNumber = blockNumber
-		}
-	}
-
+func ComputeMissingBlockNumbers(blockNumbers map[uint64]bool, start, end uint64) []uint64 {
 	missing := make([]uint64, 0)
-	for blockNumber := minNumber; blockNumber <= maxNumber; blockNumber++ {
+	for blockNumber := start; blockNumber <= end; blockNumber++ {
 		if _, ok := blockNumbers[blockNumber]; !ok {
 			missing = append(missing, blockNumber)
 		}
@@ -129,7 +118,7 @@ func ComputeMissingBlockNumbers(blockNumbers map[uint64]bool, blockchain core.Bl
 
 func OutputAllMissingBlockNumbers(
 	blockchain core.Blockchain, globPattern string,
-	outputPath string, start uint64) error {
+	outputPath string, start, end uint64) error {
 
 	blocks, err := YieldAllBlocks(globPattern, blockchain, start, 0)
 	if err != nil {
@@ -144,7 +133,7 @@ func OutputAllMissingBlockNumbers(
 		blockNumbers[block.Number()] = true
 	}
 
-	missing := ComputeMissingBlockNumbers(blockNumbers, blockchain)
+	missing := ComputeMissingBlockNumbers(blockNumbers, start, end)
 	for _, number := range missing {
 		fmt.Fprintf(outputFile, "{\"block\": %d}\n", number)
 	}

@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/danhper/blockchain-data-fetcher/core"
@@ -20,7 +21,8 @@ func TestGetMissingBlockNumbersValid(t *testing.T) {
 	reader := core.GetFixtureReader(core.XRPValidLedgersFilename)
 	blockchain := xrp.New()
 	blockNumbers := ComputeBlockNumbers(reader, blockchain)
-	missing := ComputeMissingBlockNumbers(blockNumbers, blockchain)
+	fmt.Println(blockNumbers)
+	missing := ComputeMissingBlockNumbers(blockNumbers, 54387321, 54387329)
 	assert.Len(t, missing, 0)
 }
 
@@ -28,7 +30,7 @@ func TestGetMissingBlockNumbersInvalid(t *testing.T) {
 	reader := core.GetFixtureReader(core.XRPMissingLedgersFilename)
 	blockchain := xrp.New()
 	blockNumbers := ComputeBlockNumbers(reader, blockchain)
-	missing := ComputeMissingBlockNumbers(blockNumbers, blockchain)
+	missing := ComputeMissingBlockNumbers(blockNumbers, 123, 126)
 	assert.Len(t, missing, 1)
 	assert.Equal(t, missing[0], uint64(124))
 }

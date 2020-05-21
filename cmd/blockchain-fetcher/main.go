@@ -99,7 +99,7 @@ func main() {
 			},
 			{
 				Name:  "check",
-				Flags: addBlockchainFlag(addStartFlag(addOutputFlag(addPatternFlag(nil)), false)),
+				Flags: addBlockchainFlag(addPatternFlag(addFetchFlags(nil))),
 				Usage: "Checks for missing blocks in data",
 				Action: func(c *cli.Context) error {
 					blockchain, err := blockchainFromCLI(c)
@@ -107,7 +107,8 @@ func main() {
 						return err
 					}
 					return processor.OutputAllMissingBlockNumbers(
-						blockchain, c.String("pattern"), c.String("output"), c.Uint64("start"))
+						blockchain, c.String("pattern"), c.String("output"),
+						c.Uint64("start"), c.Uint64("end"))
 				},
 			},
 			{

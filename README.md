@@ -30,5 +30,5 @@ blockchain-fetcher fetch -b eos -o eos-blocks.jsonl --start 500000 --end 600000
 The `check` command can then be used to check the fetched data.
 
 ```
-blockchain-fetcher check -b eos -p 'eos-blocks*.jsonl' -o missing.jsonl
+blockchain-fetcher check -b eos -p 'eos-blocks*.jsonl' -o missing.jsonl --start 500000 --end 600000
 ```
