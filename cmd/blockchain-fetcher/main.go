@@ -42,8 +42,12 @@ func addOutputFlag(flags []cli.Flag) []cli.Flag {
 	})
 }
 
+func addRangeFlags(flags []cli.Flag, required bool) []cli.Flag {
+	return addStartFlag(addEndFlag(nil, required), required)
+}
+
 func addFetchFlags(flags []cli.Flag) []cli.Flag {
-	return addStartFlag(addEndFlag(addOutputFlag(flags), true), true)
+	return addRangeFlags(addOutputFlag(flags), true)
 }
 
 func addPatternFlag(flags []cli.Flag) []cli.Flag {
@@ -82,6 +86,16 @@ func blockchainFromCLI(c *cli.Context) (core.Blockchain, error) {
 	}
 }
 
+func makeAction(f func(*cli.Context, core.Blockchain) error) func(*cli.Context) error {
+	return func(c *cli.Context) error {
+		blockchain, err := blockchainFromCLI(c)
+		if err != nil {
+			return err
+		}
+		return f(c, blockchain)
+	}
+}
+
 func main() {
 	app := &cli.App{
 		Commands: []*cli.Command{
@@ -89,38 +103,25 @@ func main() {
 				Name:  "fetch",
 				Flags: addFetchFlags(addBlockchainFlag(nil)),
 				Usage: "Fetches blockchain data",
-				Action: func(c *cli.Context) error {
-					blockchain, err := blockchainFromCLI(c)
-					if err != nil {
-						return err
-					}
+				Action: makeAction(func(c *cli.Context, blockchain core.Blockchain) error {
 					return blockchain.FetchData(c.String("output"), c.Uint64("start"), c.Uint64("end"))
-				},
+				}),
 			},
 			{
 				Name:  "check",
 				Flags: addBlockchainFlag(addPatternFlag(addFetchFlags(nil))),
 				Usage: "Checks for missing blocks in data",
-				Action: func(c *cli.Context) error {
-					blockchain, err := blockchainFromCLI(c)
-					if err != nil {
-						return err
-					}
+				Action: makeAction(func(c *cli.Context, blockchain core.Blockchain) error {
 					return processor.OutputAllMissingBlockNumbers(
 						blockchain, c.String("pattern"), c.String("output"),
 						c.Uint64("start"), c.Uint64("end"))
-				},
+				}),
 			},
 			{
-				Name: "count-transactions",
-				Flags: addBlockchainFlag(addEndFlag(
-					addStartFlag(addPatternFlag(nil), false), false)),
+				Name:  "count-transactions",
+				Flags: addBlockchainFlag(addPatternFlag(addRangeFlags(nil, false))),
 				Usage: "Count the number of transactions in the data",
-				Action: func(c *cli.Context) error {
-					blockchain, err := blockchainFromCLI(c)
-					if err != nil {
-						return err
-					}
+				Action: makeAction(func(c *cli.Context, blockchain core.Blockchain) error {
 					count, err := processor.CountTransactions(
 						blockchain, c.String("pattern"),
 						c.Uint64("start"), c.Uint64("end"))
@@ -129,7 +130,22 @@ func main() {
 					}
 					fmt.Printf("found %d transactions\n", count)
 					return nil
-				},
+				}),
+			},
+			{
+				Name: "count-actions",
+				Flags: addBlockchainFlag(addPatternFlag(
+					addOutputFlag(addRangeFlags(nil, false)))),
+				Usage: "Count the number of transactions in the data",
+				Action: makeAction(func(c *cli.Context, blockchain core.Blockchain) error {
+					counts, err := processor.CountActions(
+						blockchain, c.String("pattern"),
+						c.Uint64("start"), c.Uint64("end"))
+					if err != nil {
+						return err
+					}
+					return counts.Persist(c.String("output"))
+				}),
 			},
 		},
 	}

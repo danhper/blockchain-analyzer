@@ -16,7 +16,8 @@ func New() *XRP {
 }
 
 type Transaction struct {
-	Account string
+	Account         string
+	TransactionType string
 }
 
 type Ledger struct {
@@ -54,4 +55,12 @@ func (l *Ledger) Number() uint64 {
 
 func (l *Ledger) TransactionsCount() int {
 	return len(l.Transactions)
+}
+
+func (l *Ledger) GetActionsCount() *core.ActionsCount {
+	actionsCount := core.NewActionsCount()
+	for _, transaction := range l.Transactions {
+		actionsCount.Increment(transaction.TransactionType)
+	}
+	return actionsCount
 }

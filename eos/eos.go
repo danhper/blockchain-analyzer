@@ -31,21 +31,34 @@ func (e *EOS) FetchData(filepath string, start, end uint64) error {
 	return fetcher.FetchHTTPData(filepath, context)
 }
 
+type Action struct {
+	Account       string
+	Name          string
+	Authorization []struct {
+		Actor      string
+		Permission string
+	}
+	Data map[string]interface{}
+}
+
 type Transaction struct {
+	Actions     []Action
+	Expiration  string
+	RefBlockNum int `json:"ref_block_num"`
+}
+
+type FullTransaction struct {
 	Status string
+	Trx    struct {
+		Id          string
+		Signatures  []string
+		Transaction Transaction
+	}
 }
 
 type Block struct {
 	BlockNumber  uint64 `json:"block_num"`
-	Transactions []Transaction
-}
-
-func (b *Block) Number() uint64 {
-	return b.BlockNumber
-}
-
-func (b *Block) TransactionsCount() int {
-	return len(b.Transactions)
+	Transactions []FullTransaction
 }
 
 func New() *EOS {
@@ -65,4 +78,30 @@ func (e *EOS) ParseBlock(rawLine []byte) (core.Block, error) {
 		return nil, err
 	}
 	return &block, nil
+}
+
+func (b *Block) Number() uint64 {
+	return b.BlockNumber
+}
+
+func (b *Block) TransactionsCount() int {
+	return len(b.Transactions)
+}
+
+func (b *Block) Actions() []Action {
+	var actions []Action
+	for _, transaction := range b.Transactions {
+		for _, action := range transaction.Trx.Transaction.Actions {
+			actions = append(actions, action)
+		}
+	}
+	return actions
+}
+
+func (b *Block) GetActionsCount() *core.ActionsCount {
+	actionsCount := core.NewActionsCount()
+	for _, action := range b.Actions() {
+		actionsCount.Increment(action.Name)
+	}
+	return actionsCount
 }

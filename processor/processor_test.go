@@ -42,3 +42,12 @@ func TestCountTransactions(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 4518, count)
 }
+
+func TestCountActions(t *testing.T) {
+	blockchain := xrp.New()
+	filepath := core.GetFixture(core.XRPValidLedgersFilename)
+	actionsCount, err := CountActions(blockchain, filepath, uint64(0), uint64(0))
+	assert.Nil(t, err)
+	assert.Equal(t, uint64(1129), actionsCount.Get("Payment"))
+	assert.Equal(t, uint64(3088), actionsCount.Get("OfferCreate"))
+}

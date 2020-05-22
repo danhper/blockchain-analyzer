@@ -152,3 +152,15 @@ func CountTransactions(blockchain core.Blockchain, globPattern string, start, en
 	}
 	return totalCount, nil
 }
+
+func CountActions(blockchain core.Blockchain, globPattern string, start, end uint64) (*core.ActionsCount, error) {
+	blocks, err := YieldAllBlocks(globPattern, blockchain, start, end)
+	if err != nil {
+		return nil, err
+	}
+	actionsCount := core.NewActionsCount()
+	for block := range blocks {
+		actionsCount.Merge(block.GetActionsCount())
+	}
+	return actionsCount, nil
+}

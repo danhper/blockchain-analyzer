@@ -30,7 +30,10 @@ func (t *Tezos) FetchData(filepath string, start, end uint64) error {
 }
 
 type Operation struct {
-	Hash string
+	Hash     string
+	Contents []struct {
+		Kind string
+	}
 }
 
 type Block struct {
@@ -38,18 +41,6 @@ type Block struct {
 		Level uint64
 	}
 	Operations [][]Operation
-}
-
-func (b *Block) Number() uint64 {
-	return b.Header.Level
-}
-
-func (b *Block) TransactionsCount() int {
-	total := 0
-	for _, operations := range b.Operations {
-		total += len(operations)
-	}
-	return total
 }
 
 func New() *Tezos {
@@ -69,4 +60,36 @@ func (t *Tezos) ParseBlock(rawLine []byte) (core.Block, error) {
 		return nil, err
 	}
 	return &block, nil
+}
+
+func (b *Block) Number() uint64 {
+	return b.Header.Level
+}
+
+func (b *Block) TransactionsCount() int {
+	total := 0
+	for _, operations := range b.Operations {
+		total += len(operations)
+	}
+	return total
+}
+
+func (b *Block) AllOperations() []Operation {
+	var result []Operation
+	for _, operations := range b.Operations {
+		for _, operation := range operations {
+			result = append(result, operation)
+		}
+	}
+	return result
+}
+
+func (b *Block) GetActionsCount() *core.ActionsCount {
+	actionsCount := core.NewActionsCount()
+	for _, operation := range b.AllOperations() {
+		for _, content := range operation.Contents {
+			actionsCount.Increment(content.Kind)
+		}
+	}
+	return actionsCount
 }
