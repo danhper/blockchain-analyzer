@@ -15,7 +15,7 @@ Currently supported blockchains:
 Go needs to be installed. The tool can then be installed by running
 
 ```
-go get github.com/danhper/blockchain-analyzer/cmd/blockchain-fetcher
+go get github.com/danhper/blockchain-analyzer/cmd/blockchain-analyzer
 ```
 
 ## Usage
