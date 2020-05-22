@@ -31,6 +31,22 @@ func (e *EOS) FetchData(filepath string, start, end uint64) error {
 	return fetcher.FetchHTTPData(filepath, context)
 }
 
+type MapOrString map[string]interface{}
+
+func (t *MapOrString) UnmarshalJSON(b []byte) error {
+	if b[0] == '"' {
+		var id string
+		if err := json.Unmarshal(b, &id); err != nil {
+			return err
+		}
+		*t = MapOrString(make(map[string]interface{}))
+		return nil
+	} else if b[0] == '{' {
+		return json.Unmarshal(b, (*map[string]interface{})(t))
+	}
+	return fmt.Errorf("expected '{' or '\"', got %s", string(b))
+}
+
 type Action struct {
 	Account       string
 	Name          string
@@ -38,7 +54,7 @@ type Action struct {
 		Actor      string
 		Permission string
 	}
-	Data map[string]interface{}
+	Data MapOrString
 }
 
 type Transaction struct {
@@ -47,13 +63,31 @@ type Transaction struct {
 	RefBlockNum int `json:"ref_block_num"`
 }
 
+type Trx struct {
+	Id          string
+	Signatures  []string
+	Transaction Transaction
+}
+
+type TrxOrString Trx
+
+func (t *TrxOrString) UnmarshalJSON(b []byte) error {
+	if b[0] == '"' {
+		var id string
+		if err := json.Unmarshal(b, &id); err != nil {
+			return err
+		}
+		*t = TrxOrString{Id: id}
+		return nil
+	} else if b[0] == '{' {
+		return json.Unmarshal(b, (*Trx)(t))
+	}
+	return fmt.Errorf("expected '{' or '\"', got %s", string(b))
+}
+
 type FullTransaction struct {
 	Status string
-	Trx    struct {
-		Id          string
-		Signatures  []string
-		Transaction Transaction
-	}
+	Trx    TrxOrString
 }
 
 type Block struct {
