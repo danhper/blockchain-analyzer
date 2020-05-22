@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/danhper/blockchain-data-fetcher/core"
-	"github.com/danhper/blockchain-data-fetcher/xrp"
+	"github.com/danhper/blockchain-analyzer/core"
+	"github.com/danhper/blockchain-analyzer/xrp"
 	"github.com/stretchr/testify/assert"
 )
 

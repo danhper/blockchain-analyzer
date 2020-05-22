@@ -12,7 +12,7 @@ import (
 
 	"github.com/gorilla/websocket"
 
-	"github.com/danhper/blockchain-data-fetcher/core"
+	"github.com/danhper/blockchain-analyzer/core"
 )
 
 const (

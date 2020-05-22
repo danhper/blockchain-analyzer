@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/danhper/blockchain-data-fetcher/core"
+	"github.com/danhper/blockchain-analyzer/core"
 )
 
 type RequestSender func(*http.Client, uint64) (*http.Response, error)

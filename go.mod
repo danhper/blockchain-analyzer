@@ -1,4 +1,4 @@
-module github.com/danhper/blockchain-data-fetcher
+module github.com/danhper/blockchain-analyzer
 
 go 1.14
 
@@ -13,5 +13,5 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/urfave/cli/v2 v2.2.0
 	golang.org/x/mod v0.3.0 // indirect
-	golang.org/x/tools v0.0.0-20200519142718-10921354bc51 // indirect
+	golang.org/x/tools v0.0.0-20200521211927-2b542361a4fc // indirect
 )

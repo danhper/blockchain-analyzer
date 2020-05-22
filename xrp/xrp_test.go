@@ -3,7 +3,7 @@ package xrp
 import (
 	"testing"
 
-	"github.com/danhper/blockchain-data-fetcher/core"
+	"github.com/danhper/blockchain-analyzer/core"
 	"github.com/stretchr/testify/assert"
 )
 

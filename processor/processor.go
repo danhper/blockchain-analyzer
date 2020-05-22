@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/danhper/blockchain-data-fetcher/core"
+	"github.com/danhper/blockchain-analyzer/core"
 )
 
 func YieldBlocks(reader io.Reader, blockchain core.Blockchain) <-chan core.Block {

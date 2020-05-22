@@ -3,7 +3,7 @@ package xrp
 import (
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/danhper/blockchain-data-fetcher/core"
+	"github.com/danhper/blockchain-analyzer/core"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary

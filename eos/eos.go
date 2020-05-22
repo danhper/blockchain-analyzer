@@ -8,8 +8,8 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 
-	"github.com/danhper/blockchain-data-fetcher/core"
-	"github.com/danhper/blockchain-data-fetcher/fetcher"
+	"github.com/danhper/blockchain-analyzer/core"
+	"github.com/danhper/blockchain-analyzer/fetcher"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
