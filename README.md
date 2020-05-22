@@ -1,5 +1,7 @@
 # blockchain-analyzer
 
+[![CircleCI](https://circleci.com/gh/danhper/blockchain-analyzer.svg?style=svg)](https://circleci.com/gh/danhper/blockchain-analyzer)
+
 CLI tool to fetch and analyze transactions data from multiple blockchains.
 
 Currently supported blockchains:
