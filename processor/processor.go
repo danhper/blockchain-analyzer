@@ -55,12 +55,12 @@ func YieldAllBlocks(
 
 	log.Printf("starting for %d files", len(files))
 	blocks := make(chan core.Block)
+	uniqueBlocks := make(chan core.Block)
 
 	processed := 0
 	fileDone := make(chan bool)
 
 	var wg sync.WaitGroup
-	seen := make(map[uint64]bool)
 	run := core.MakeFileProcessor(func(filename string) error {
 		defer wg.Done()
 		reader, err := core.OpenFile(filename)
@@ -69,16 +69,25 @@ func YieldAllBlocks(
 		}
 		defer reader.Close()
 		for block := range YieldBlocks(reader, blockchain) {
-			_, ok := seen[block.Number()]
-			if !ok && (start == 0 || block.Number() >= start) &&
+			if (start == 0 || block.Number() >= start) &&
 				(end == 0 || block.Number() <= end) {
 				blocks <- block
-				seen[block.Number()] = true
 			}
 		}
 		fileDone <- true
 		return err
 	})
+
+	seen := make(map[uint64]bool)
+	go func() {
+		for block := range blocks {
+			if _, ok := seen[block.Number()]; !ok {
+				uniqueBlocks <- block
+				seen[block.Number()] = true
+			}
+		}
+		close(uniqueBlocks)
+	}()
 
 	for _, filename := range files {
 		wg.Add(1)
@@ -98,7 +107,7 @@ func YieldAllBlocks(
 		close(fileDone)
 	}()
 
-	return blocks, nil
+	return uniqueBlocks, nil
 }
 
 func ComputeBlockNumbers(reader io.Reader, blockchain core.Blockchain) map[uint64]bool {
