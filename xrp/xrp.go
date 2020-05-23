@@ -1,7 +1,6 @@
 package xrp
 
 import (
-	"fmt"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
@@ -45,7 +44,6 @@ func ParseRawLedger(rawLedger []byte) (*Ledger, error) {
 		return nil, err
 	}
 	ledger := response.Result.Ledger
-	fmt.Println(ledger.CloseTimestamp)
 	ledger.parsedCloseTime = time.Unix(ledger.CloseTimestamp+rippleEpochOffset, 0).UTC()
 	ledger.Index = response.Result.LedgerIndex
 	return &ledger, nil
@@ -71,7 +69,7 @@ func (l *Ledger) TransactionsCount() int {
 	return len(l.Transactions)
 }
 
-func (l *Ledger) GetActionsCount() *core.ActionsCount {
+func (l *Ledger) GetActionsCount(prop core.ActionProperty) *core.ActionsCount {
 	actionsCount := core.NewActionsCount()
 	for _, transaction := range l.Transactions {
 		actionsCount.Increment(transaction.TransactionType)

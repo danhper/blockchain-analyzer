@@ -23,6 +23,7 @@ func TestParseBlock(t *testing.T) {
 func TestGetActionsCount(t *testing.T) {
 	rawBlock := core.ReadAllBlocks("tezos")[1]
 	block, _ := New().ParseBlock(rawBlock)
-	assert.Equal(t, uint64(8), block.GetActionsCount().Get("endorsement"))
-	assert.Equal(t, uint64(1), block.GetActionsCount().Get("delegation"))
+	actions := block.GetActionsCount(core.ActionName)
+	assert.Equal(t, uint64(8), actions.Get("endorsement"))
+	assert.Equal(t, uint64(1), actions.Get("delegation"))
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/danhper/blockchain-analyzer/core"
 )
@@ -175,7 +176,24 @@ func CountActions(blockchain core.Blockchain, globPattern string, start, end uin
 	}
 	actionsCount := core.NewActionsCount()
 	for block := range blocks {
-		actionsCount.Merge(block.GetActionsCount())
+		actionsCount.Merge(block.GetActionsCount(core.ActionName))
 	}
 	return actionsCount, nil
+}
+
+func CountActionsPerTime(
+	blockchain core.Blockchain,
+	globPattern string,
+	start, end uint64,
+	duration time.Duration,
+	actionProperty core.ActionProperty) (*core.GroupedActions, error) {
+	blocks, err := YieldAllBlocks(globPattern, blockchain, start, end)
+	if err != nil {
+		return nil, err
+	}
+	result := core.NewGroupedActions(duration)
+	for block := range blocks {
+		result.AddActions(block.Time(), block.GetActionsCount(actionProperty))
+	}
+	return result, nil
 }

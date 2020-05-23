@@ -147,10 +147,17 @@ func (b *Block) Actions() []Action {
 	return actions
 }
 
-func (b *Block) GetActionsCount() *core.ActionsCount {
+func (b *Block) GetActionsCount(prop core.ActionProperty) *core.ActionsCount {
+	if prop != core.ActionName {
+		panic(fmt.Errorf("action's %d not supported in XRP", prop))
+	}
 	actionsCount := core.NewActionsCount()
 	for _, action := range b.Actions() {
-		actionsCount.Increment(action.Name)
+		if prop == core.ActionName {
+			actionsCount.Increment(action.Name)
+		} else {
+			actionsCount.Increment(action.Account)
+		}
 	}
 	return actionsCount
 }

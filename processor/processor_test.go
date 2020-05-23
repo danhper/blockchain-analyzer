@@ -1,8 +1,8 @@
 package processor
 
 import (
-	"fmt"
 	"testing"
+	"time"
 
 	"github.com/danhper/blockchain-analyzer/core"
 	"github.com/danhper/blockchain-analyzer/xrp"
@@ -42,6 +42,18 @@ func TestCountTransactions(t *testing.T) {
 	assert.Equal(t, 4518, count)
 }
 
+func TestYieldAllDuplicated(t *testing.T) {
+	blockchain := xrp.New()
+	fixtures := core.GetFixture(core.XRPDuplicatedLedgersFilename)
+	blocksChan, err := YieldAllBlocks(fixtures, blockchain, uint64(0), uint64(0))
+	assert.Nil(t, err)
+	var blocks []core.Block
+	for block := range blocksChan {
+		blocks = append(blocks, block)
+	}
+	assert.Equal(t, 3, len(blocks))
+}
+
 func TestCountActions(t *testing.T) {
 	blockchain := xrp.New()
 	filepath := core.GetFixture(core.XRPValidLedgersFilename)
@@ -51,15 +63,17 @@ func TestCountActions(t *testing.T) {
 	assert.Equal(t, uint64(3088), actionsCount.Get("OfferCreate"))
 }
 
-func TestYieldAllDuplicated(t *testing.T) {
+func TestCountActionsPerTime(t *testing.T) {
 	blockchain := xrp.New()
-	fixtures := core.GetFixture(core.XRPDuplicatedLedgersFilename)
-	fmt.Println(fixtures)
-	blocksChan, err := YieldAllBlocks(fixtures, blockchain, uint64(0), uint64(0))
+	filepath := core.GetFixture(core.XRPValidLedgersFilename)
+	actionsCount, err := CountActionsPerTime(
+		blockchain, filepath, uint64(0), uint64(0), time.Minute, core.ActionName)
 	assert.Nil(t, err)
-	var blocks []core.Block
-	for block := range blocksChan {
-		blocks = append(blocks, block)
-	}
-	assert.Equal(t, 3, len(blocks))
+	assert.Len(t, actionsCount.Actions, 7)
+	lastGroup := time.Date(2020, 3, 27, 20, 55, 0, 0, time.UTC)
+	assert.Contains(t, actionsCount.Actions, lastGroup)
+	assert.Equal(t, uint64(96), actionsCount.Actions[lastGroup].Get("Payment"))
+	beforeLastGroup := time.Date(2020, 3, 27, 20, 54, 0, 0, time.UTC)
+	assert.Contains(t, actionsCount.Actions, beforeLastGroup)
+	assert.Equal(t, uint64(519), actionsCount.Actions[beforeLastGroup].Get("OfferCreate"))
 }

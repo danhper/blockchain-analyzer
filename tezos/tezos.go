@@ -96,7 +96,10 @@ func (b *Block) AllOperations() []Operation {
 	return result
 }
 
-func (b *Block) GetActionsCount() *core.ActionsCount {
+func (b *Block) GetActionsCount(prop core.ActionProperty) *core.ActionsCount {
+	if prop != core.ActionName {
+		panic(fmt.Errorf("action's %d not supported in Tezos", prop))
+	}
 	actionsCount := core.NewActionsCount()
 	for _, operation := range b.AllOperations() {
 		for _, content := range operation.Contents {
