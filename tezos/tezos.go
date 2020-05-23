@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 
@@ -38,7 +39,9 @@ type Operation struct {
 
 type Block struct {
 	Header struct {
-		Level uint64
+		Level           uint64
+		Timestamp       string
+		parsedTimestamp time.Time
 	}
 	Operations [][]Operation
 }
@@ -59,11 +62,20 @@ func (t *Tezos) ParseBlock(rawLine []byte) (core.Block, error) {
 	if err := json.Unmarshal(rawLine, &block); err != nil {
 		return nil, err
 	}
+	parsedTime, err := time.Parse(time.RFC3339, block.Header.Timestamp)
+	if err != nil {
+		return nil, err
+	}
+	block.Header.parsedTimestamp = parsedTime
 	return &block, nil
 }
 
 func (b *Block) Number() uint64 {
 	return b.Header.Level
+}
+
+func (b *Block) Time() time.Time {
+	return b.Header.parsedTimestamp
 }
 
 func (b *Block) TransactionsCount() int {

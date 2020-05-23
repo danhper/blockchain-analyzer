@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 
@@ -14,7 +15,10 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-const defaultProducerURL string = "https://api.main.alohaeos.com:443"
+const (
+	defaultProducerURL string = "https://api.main.alohaeos.com:443"
+	timeLayout         string = "2006-01-02T15:04:05.999"
+)
 
 type EOS struct {
 	ProducerURL string
@@ -92,6 +96,8 @@ type FullTransaction struct {
 
 type Block struct {
 	BlockNumber  uint64 `json:"block_num"`
+	Timestamp    string
+	parsedTime   time.Time
 	Transactions []FullTransaction
 }
 
@@ -111,11 +117,20 @@ func (e *EOS) ParseBlock(rawLine []byte) (core.Block, error) {
 	if err := json.Unmarshal(rawLine, &block); err != nil {
 		return nil, err
 	}
+	parsedTime, err := time.Parse(timeLayout, block.Timestamp)
+	if err != nil {
+		return nil, err
+	}
+	block.parsedTime = parsedTime
 	return &block, nil
 }
 
 func (b *Block) Number() uint64 {
 	return b.BlockNumber
+}
+
+func (b *Block) Time() time.Time {
+	return b.parsedTime
 }
 
 func (b *Block) TransactionsCount() int {

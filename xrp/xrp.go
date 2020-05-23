@@ -1,12 +1,17 @@
 package xrp
 
 import (
+	"fmt"
+	"time"
+
 	jsoniter "github.com/json-iterator/go"
 
 	"github.com/danhper/blockchain-analyzer/core"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+const rippleEpochOffset int64 = 946684800
 
 type XRP struct {
 }
@@ -21,8 +26,10 @@ type Transaction struct {
 }
 
 type Ledger struct {
-	Index        uint64
-	Transactions []Transaction
+	Index           uint64 `json:"-"`
+	CloseTimestamp  int64  `json:"close_time"`
+	parsedCloseTime time.Time
+	Transactions    []Transaction
 }
 
 type XRPLedgerResponse struct {
@@ -37,8 +44,11 @@ func ParseRawLedger(rawLedger []byte) (*Ledger, error) {
 	if err := json.Unmarshal(rawLedger, &response); err != nil {
 		return nil, err
 	}
-	response.Result.Ledger.Index = response.Result.LedgerIndex
-	return &response.Result.Ledger, nil
+	ledger := response.Result.Ledger
+	fmt.Println(ledger.CloseTimestamp)
+	ledger.parsedCloseTime = time.Unix(ledger.CloseTimestamp+rippleEpochOffset, 0).UTC()
+	ledger.Index = response.Result.LedgerIndex
+	return &ledger, nil
 }
 
 func (e *XRP) ParseBlock(rawLine []byte) (core.Block, error) {
@@ -51,6 +61,10 @@ func (e *XRP) FetchData(filepath string, start, end uint64) error {
 
 func (l *Ledger) Number() uint64 {
 	return l.Index
+}
+
+func (l *Ledger) Time() time.Time {
+	return l.parsedCloseTime
 }
 
 func (l *Ledger) TransactionsCount() int {

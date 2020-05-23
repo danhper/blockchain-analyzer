@@ -2,6 +2,7 @@ package xrp
 
 import (
 	"testing"
+	"time"
 
 	"github.com/danhper/blockchain-analyzer/core"
 	"github.com/stretchr/testify/assert"
@@ -14,6 +15,8 @@ func TestParseRawLedger(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, uint64(54387329), ledger.Number())
 	assert.Equal(t, 33, ledger.TransactionsCount())
+	expectedTime := time.Date(2020, 3, 27, 20, 52, 50, 0, time.UTC)
+	assert.Equal(t, expectedTime, ledger.Time())
 }
 
 func TestGetActionsCount(t *testing.T) {
