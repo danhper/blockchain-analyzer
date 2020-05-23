@@ -30,19 +30,23 @@ func (t *Tezos) FetchData(filepath string, start, end uint64) error {
 	return fetcher.FetchHTTPData(filepath, context)
 }
 
+type Content struct {
+	Kind string
+}
+
 type Operation struct {
 	Hash     string
-	Contents []struct {
-		Kind string
-	}
+	Contents []Content
+}
+
+type BlockHeader struct {
+	Level           uint64
+	Timestamp       string
+	ParsedTimestamp time.Time
 }
 
 type Block struct {
-	Header struct {
-		Level           uint64
-		Timestamp       string
-		parsedTimestamp time.Time
-	}
+	Header     BlockHeader
 	Operations [][]Operation
 }
 
@@ -66,8 +70,12 @@ func (t *Tezos) ParseBlock(rawLine []byte) (core.Block, error) {
 	if err != nil {
 		return nil, err
 	}
-	block.Header.parsedTimestamp = parsedTime
+	block.Header.ParsedTimestamp = parsedTime
 	return &block, nil
+}
+
+func (t *Tezos) EmptyBlock() core.Block {
+	return &Block{}
 }
 
 func (b *Block) Number() uint64 {
@@ -75,7 +83,7 @@ func (b *Block) Number() uint64 {
 }
 
 func (b *Block) Time() time.Time {
-	return b.Header.parsedTimestamp
+	return b.Header.ParsedTimestamp
 }
 
 func (b *Block) TransactionsCount() int {

@@ -191,6 +191,15 @@ func main() {
 					return core.Persist(counts, c.String("output"))
 				}),
 			},
+			{
+				Name:  "export",
+				Flags: addPatternFlag(addOutputFlag(addRangeFlags(nil, false))),
+				Usage: "Export a subset of the fields to msgpack format for faster processing",
+				Action: makeAction(func(c *cli.Context, blockchain core.Blockchain) error {
+					return processor.ExportToMsgpack(blockchain, c.String("pattern"),
+						c.Uint64("start"), c.Uint64("end"), c.String("output"))
+				}),
+			},
 		},
 	}
 

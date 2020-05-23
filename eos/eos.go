@@ -112,9 +112,9 @@ func New() *EOS {
 	}
 }
 
-func (e *EOS) ParseBlock(rawLine []byte) (core.Block, error) {
+func (e *EOS) ParseBlock(rawBlock []byte) (core.Block, error) {
 	var block Block
-	if err := json.Unmarshal(rawLine, &block); err != nil {
+	if err := json.Unmarshal(rawBlock, &block); err != nil {
 		return nil, err
 	}
 	parsedTime, err := time.Parse(timeLayout, block.Timestamp)
@@ -122,7 +122,11 @@ func (e *EOS) ParseBlock(rawLine []byte) (core.Block, error) {
 		return nil, err
 	}
 	block.parsedTime = parsedTime
-	return &block, nil
+	return &block, json.Unmarshal(rawBlock, &block)
+}
+
+func (e *EOS) EmptyBlock() core.Block {
+	return &Block{}
 }
 
 func (b *Block) Number() uint64 {

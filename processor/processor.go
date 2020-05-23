@@ -6,18 +6,47 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/danhper/blockchain-analyzer/core"
+	"github.com/ugorji/go/codec"
 )
 
 const logInterval int = 10000
 
-func YieldBlocks(reader io.Reader, blockchain core.Blockchain) <-chan core.Block {
+type FileFormat int
+
+const (
+	JSONFormat FileFormat = iota
+	MsgpackFormat
+)
+
+var (
+	msgpackHandle = &codec.MsgpackHandle{}
+)
+
+func InferFormat(filepath string) (FileFormat, error) {
+	if strings.Contains(filepath, ".jsonl") {
+		return JSONFormat, nil
+	}
+	if strings.Contains(filepath, ".dat") {
+		return MsgpackFormat, nil
+	}
+	return JSONFormat, fmt.Errorf("invalid filename %s", filepath)
+}
+
+func YieldBlocks(reader io.Reader, blockchain core.Blockchain, format FileFormat) <-chan core.Block {
 	stream := bufio.NewReader(reader)
 	blocks := make(chan core.Block)
+
+	var decoder *codec.Decoder
+	if format == MsgpackFormat {
+		decoder = codec.NewDecoder(stream, msgpackHandle)
+	}
 
 	go func() {
 		defer close(blocks)
@@ -26,20 +55,33 @@ func YieldBlocks(reader io.Reader, blockchain core.Blockchain) <-chan core.Block
 			if i%logInterval == 0 {
 				log.Printf("processed: %d", i)
 			}
-			rawLine, err := stream.ReadBytes('\n')
+			var block core.Block
+			var err error
+			switch format {
+			case JSONFormat:
+				rawLine, err := stream.ReadBytes('\n')
+				if err == io.EOF {
+					return
+				}
+				if err != nil {
+					log.Printf("failed to read line %s\n", err.Error())
+					return
+				}
+				rawLine = bytes.ToValidUTF8(rawLine, []byte{})
+				block, err = blockchain.ParseBlock(rawLine)
+			case MsgpackFormat:
+				blockchainBlock := blockchain.EmptyBlock()
+				err = decoder.Decode(&blockchainBlock)
+				block = blockchainBlock
+			}
+
 			if err == io.EOF {
 				break
-			}
-			if err != nil {
-				log.Printf("failed to read line %s\n", err.Error())
-				return
-			}
-			rawLine = bytes.ToValidUTF8(rawLine, []byte{})
-			block, err := blockchain.ParseBlock(rawLine)
-			if err != nil {
-				log.Printf("could not parse: %s, line: %s", err.Error(), rawLine)
+			} else if err != nil {
+				log.Printf("could not parse: %s", err.Error())
 				continue
 			}
+
 			blocks <- block
 		}
 	}()
@@ -66,12 +108,16 @@ func YieldAllBlocks(
 	var wg sync.WaitGroup
 	run := core.MakeFileProcessor(func(filename string) error {
 		defer wg.Done()
+		fileFormat, err := InferFormat(filename)
+		if err != nil {
+			return err
+		}
 		reader, err := core.OpenFile(filename)
 		if err != nil {
 			return err
 		}
 		defer reader.Close()
-		for block := range YieldBlocks(reader, blockchain) {
+		for block := range YieldBlocks(reader, blockchain, fileFormat) {
 			if (start == 0 || block.Number() >= start) &&
 				(end == 0 || block.Number() <= end) {
 				blocks <- block
@@ -111,14 +157,6 @@ func YieldAllBlocks(
 	}()
 
 	return uniqueBlocks, nil
-}
-
-func ComputeBlockNumbers(reader io.Reader, blockchain core.Blockchain) map[uint64]bool {
-	blockNumbers := make(map[uint64]bool)
-	for block := range YieldBlocks(reader, blockchain) {
-		blockNumbers[block.Number()] = true
-	}
-	return blockNumbers
 }
 
 func ComputeMissingBlockNumbers(blockNumbers map[uint64]bool, start, end uint64) []uint64 {
@@ -196,4 +234,69 @@ func CountActionsPerTime(
 		result.AddActions(block.Time(), block.GetActionsCount(actionProperty))
 	}
 	return result, nil
+}
+
+func ExportToMsgpack(
+	blockchain core.Blockchain,
+	globPattern string,
+	start, end uint64,
+	outputDir string,
+) error {
+	files, err := filepath.Glob(globPattern)
+	if err != nil {
+		return err
+	}
+	processed := 0
+	fileDone := make(chan bool)
+	var wg sync.WaitGroup
+
+	exportFile := core.MakeFileProcessor(func(filename string) error {
+		defer wg.Done()
+		reader, err := core.OpenFile(filename)
+		if err != nil {
+			return err
+		}
+		defer reader.Close()
+
+		outputFilename := strings.Replace(path.Base(filename), "jsonl", "dat", 1)
+		outputFilepath := path.Join(outputDir, outputFilename)
+		writer, err := core.CreateFile(outputFilepath)
+		if err != nil {
+			return err
+		}
+		defer writer.Close()
+
+		for block := range YieldBlocks(reader, blockchain, JSONFormat) {
+			if (start == 0 || block.Number() >= start) &&
+				(end == 0 || block.Number() <= end) {
+				var rawBlock []byte
+				enc := codec.NewEncoderBytes(&rawBlock, msgpackHandle)
+				if err := enc.Encode(block); err != nil {
+					return err
+				}
+				writer.Write(rawBlock)
+			}
+		}
+		fileDone <- true
+		return err
+	})
+
+	go func() {
+		for range fileDone {
+			processed++
+			log.Printf("files processed: %d/%d", processed, len(files))
+		}
+	}()
+
+	log.Printf("exporting %d files", len(files))
+
+	for _, filename := range files {
+		wg.Add(1)
+		go exportFile(filename)
+	}
+
+	wg.Wait()
+	close(fileDone)
+
+	return nil
 }

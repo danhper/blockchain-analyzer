@@ -58,11 +58,15 @@ func ParseRawLedger(rawLedger []byte) (*Ledger, error) {
 	return &ledger, nil
 }
 
-func (e *XRP) ParseBlock(rawLine []byte) (core.Block, error) {
+func (x *XRP) ParseBlock(rawLine []byte) (core.Block, error) {
 	return ParseRawLedger(rawLine)
 }
 
-func (e *XRP) FetchData(filepath string, start, end uint64) error {
+func (x *XRP) EmptyBlock() core.Block {
+	return &Ledger{}
+}
+
+func (x *XRP) FetchData(filepath string, start, end uint64) error {
 	return fetchXRPData(filepath, start, end)
 }
 

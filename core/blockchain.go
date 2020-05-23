@@ -1,10 +1,13 @@
 package core
 
-import "time"
+import (
+	"time"
+)
 
 type Blockchain interface {
 	FetchData(filepath string, start, end uint64) error
 	ParseBlock(rawLine []byte) (Block, error)
+	EmptyBlock() Block
 }
 
 type Block interface {
