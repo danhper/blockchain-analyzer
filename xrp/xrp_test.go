@@ -1,6 +1,7 @@
 package xrp
 
 import (
+	"bufio"
 	"testing"
 	"time"
 
@@ -17,6 +18,16 @@ func TestParseRawLedger(t *testing.T) {
 	assert.Equal(t, 33, ledger.TransactionsCount())
 	expectedTime := time.Date(2020, 3, 27, 20, 52, 50, 0, time.UTC)
 	assert.Equal(t, expectedTime, ledger.Time())
+}
+
+func TestParseRawLedgerSimpleFormat(t *testing.T) {
+	reader := core.GetFixtureReader(core.XRPSimpleValidLedgersFilename)
+	defer reader.Close()
+	rawLedger, err := bufio.NewReader(reader).ReadBytes('\n')
+	assert.Nil(t, err)
+	ledger, err := ParseRawLedger(rawLedger)
+	assert.Nil(t, err)
+	assert.Equal(t, uint64(50387844), ledger.Number())
 }
 
 func TestGetActionsCount(t *testing.T) {

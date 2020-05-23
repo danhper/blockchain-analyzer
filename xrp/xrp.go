@@ -31,21 +31,30 @@ type Ledger struct {
 	Transactions    []Transaction
 }
 
-type XRPLedgerResponse struct {
-	Result struct {
-		LedgerIndex uint64 `json:"ledger_index"`
-		Ledger      Ledger
-	}
+type xrpLedger struct {
+	LedgerIndex uint64 `json:"ledger_index"`
+	Ledger      Ledger
+	Validated   bool
+}
+
+type xrpLedgerResponse struct {
+	Result xrpLedger
 }
 
 func ParseRawLedger(rawLedger []byte) (*Ledger, error) {
-	var response XRPLedgerResponse
+	var response xrpLedgerResponse
 	if err := json.Unmarshal(rawLedger, &response); err != nil {
 		return nil, err
 	}
-	ledger := response.Result.Ledger
+	result := response.Result
+	if result.LedgerIndex == uint64(0) && !result.Validated {
+		if err := json.Unmarshal(rawLedger, &result); err != nil {
+			return nil, err
+		}
+	}
+	ledger := result.Ledger
 	ledger.parsedCloseTime = time.Unix(ledger.CloseTimestamp+rippleEpochOffset, 0).UTC()
-	ledger.Index = response.Result.LedgerIndex
+	ledger.Index = result.LedgerIndex
 	return &ledger, nil
 }
 

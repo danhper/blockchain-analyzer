@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	XRPValidLedgersFilename      string = "xrp-ledgers-54387273--54387372.jsonl.gz"
-	XRPMissingLedgersFilename    string = "xrp-missing-block.jsonl"
-	XRPDuplicatedLedgersFilename string = "xrp-duplicated.jsonl"
+	XRPValidLedgersFilename       string = "xrp-ledgers-54387273--54387372.jsonl.gz"
+	XRPSimpleValidLedgersFilename string = "xrp-ledgers-simple-format-50287874--50287973.jsonl.gz"
+	XRPMissingLedgersFilename     string = "xrp-missing-block.jsonl"
+	XRPDuplicatedLedgersFilename  string = "xrp-duplicated.jsonl"
 
 	EOSValidBlocksFilename   string = "eos-blocks-120893532--120893631.jsonl.gz"
 	TezosValidBlocksFilename string = "tezos-blocks.jsonl"
