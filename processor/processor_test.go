@@ -21,7 +21,6 @@ func TestGetMissingBlockNumbersValid(t *testing.T) {
 	reader := core.GetFixtureReader(core.XRPValidLedgersFilename)
 	blockchain := xrp.New()
 	blockNumbers := ComputeBlockNumbers(reader, blockchain)
-	fmt.Println(blockNumbers)
 	missing := ComputeMissingBlockNumbers(blockNumbers, 54387321, 54387329)
 	assert.Len(t, missing, 0)
 }
@@ -50,4 +49,17 @@ func TestCountActions(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, uint64(1129), actionsCount.Get("Payment"))
 	assert.Equal(t, uint64(3088), actionsCount.Get("OfferCreate"))
+}
+
+func TestYieldAllDuplicated(t *testing.T) {
+	blockchain := xrp.New()
+	fixtures := core.GetFixture(core.XRPDuplicatedLedgersFilename)
+	fmt.Println(fixtures)
+	blocksChan, err := YieldAllBlocks(fixtures, blockchain, uint64(0), uint64(0))
+	assert.Nil(t, err)
+	var blocks []core.Block
+	for block := range blocksChan {
+		blocks = append(blocks, block)
+	}
+	assert.Equal(t, 3, len(blocks))
 }

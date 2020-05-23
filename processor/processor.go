@@ -60,6 +60,7 @@ func YieldAllBlocks(
 	fileDone := make(chan bool)
 
 	var wg sync.WaitGroup
+	seen := make(map[uint64]bool)
 	run := core.MakeFileProcessor(func(filename string) error {
 		defer wg.Done()
 		reader, err := core.OpenFile(filename)
@@ -68,8 +69,11 @@ func YieldAllBlocks(
 		}
 		defer reader.Close()
 		for block := range YieldBlocks(reader, blockchain) {
-			if (start == 0 || block.Number() >= start) && (end == 0 || block.Number() <= end) {
+			_, ok := seen[block.Number()]
+			if !ok && (start == 0 || block.Number() >= start) &&
+				(end == 0 || block.Number() <= end) {
 				blocks <- block
+				seen[block.Number()] = true
 			}
 		}
 		fileDone <- true
