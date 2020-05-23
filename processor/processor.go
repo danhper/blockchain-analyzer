@@ -12,6 +12,8 @@ import (
 	"github.com/danhper/blockchain-analyzer/core"
 )
 
+const logInterval int = 10000
+
 func YieldBlocks(reader io.Reader, blockchain core.Blockchain) <-chan core.Block {
 	stream := bufio.NewReader(reader)
 	blocks := make(chan core.Block)
@@ -20,7 +22,7 @@ func YieldBlocks(reader io.Reader, blockchain core.Blockchain) <-chan core.Block
 		defer close(blocks)
 
 		for i := 0; ; i++ {
-			if i%1000 == 0 {
+			if i%logInterval == 0 {
 				log.Printf("processed: %d", i)
 			}
 			rawLine, err := stream.ReadBytes('\n')
