@@ -55,7 +55,7 @@ func YieldBlocks(reader io.Reader, blockchain core.Blockchain, format FileFormat
 			if i%logInterval == 0 {
 				log.Printf("processed: %d", i)
 			}
-			var block core.Block
+			block := blockchain.EmptyBlock()
 			var err error
 			switch format {
 			case JSONFormat:
@@ -70,9 +70,7 @@ func YieldBlocks(reader io.Reader, blockchain core.Blockchain, format FileFormat
 				rawLine = bytes.ToValidUTF8(rawLine, []byte{})
 				block, err = blockchain.ParseBlock(rawLine)
 			case MsgpackFormat:
-				blockchainBlock := blockchain.EmptyBlock()
-				err = decoder.Decode(&blockchainBlock)
-				block = blockchainBlock
+				err = decoder.Decode(&block)
 			}
 
 			if err == io.EOF {
@@ -82,7 +80,9 @@ func YieldBlocks(reader io.Reader, blockchain core.Blockchain, format FileFormat
 				continue
 			}
 
-			blocks <- block
+			if block != nil {
+				blocks <- block
+			}
 		}
 	}()
 
