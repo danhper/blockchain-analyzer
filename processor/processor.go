@@ -219,7 +219,7 @@ func CountActions(blockchain core.Blockchain, globPattern string, start, end uin
 	return actionsCount, nil
 }
 
-func CountActionsPerTime(
+func CountActionsOverTime(
 	blockchain core.Blockchain,
 	globPattern string,
 	start, end uint64,
@@ -232,6 +232,20 @@ func CountActionsPerTime(
 	result := core.NewGroupedActions(duration)
 	for block := range blocks {
 		result.AddActions(block.Time(), block.GetActionsCount(actionProperty))
+	}
+	return result, nil
+}
+
+func CountTransactionsOverTime(blockchain core.Blockchain, globPattern string,
+	start, end uint64, duration time.Duration,
+) (*core.GroupedTransactionCount, error) {
+	blocks, err := YieldAllBlocks(globPattern, blockchain, start, end)
+	if err != nil {
+		return nil, err
+	}
+	result := core.NewGroupedTransactionCount(duration)
+	for block := range blocks {
+		result.AddBlock(block)
 	}
 	return result, nil
 }

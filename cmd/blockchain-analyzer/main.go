@@ -45,10 +45,9 @@ func addOutputFlag(flags []cli.Flag) []cli.Flag {
 
 func addActionPropertyFlag(flags []cli.Flag) []cli.Flag {
 	return append(flags, &cli.StringFlag{
-		Name:    "property",
-		Aliases: []string{"p"},
-		Value:   "name",
-		Usage:   "Property to use for actions",
+		Name:  "property",
+		Value: "name",
+		Usage: "Property to use for actions",
 	})
 }
 
@@ -168,9 +167,9 @@ func main() {
 				}),
 			},
 			{
-				Name: "count-actions-per-time",
-				Flags: addGroupDurationFlag(
-					addPatternFlag(addOutputFlag(addRangeFlags(nil, false)))),
+				Name: "count-actions-over-time",
+				Flags: addActionPropertyFlag(addGroupDurationFlag(
+					addPatternFlag(addOutputFlag(addRangeFlags(nil, false))))),
 				Usage: "Count and groups per time the number of \"actions\" in the data",
 				Action: makeAction(func(c *cli.Context, blockchain core.Blockchain) error {
 					duration, err := time.ParseDuration(c.String("duration"))
@@ -181,10 +180,28 @@ func main() {
 					if err != nil {
 						return err
 					}
-					counts, err := processor.CountActionsPerTime(
+					counts, err := processor.CountActionsOverTime(
 						blockchain, c.String("pattern"),
 						c.Uint64("start"), c.Uint64("end"),
 						duration, actionProperty)
+					if err != nil {
+						return err
+					}
+					return core.Persist(counts, c.String("output"))
+				}),
+			},
+			{
+				Name:  "count-transactions-over-time",
+				Flags: addGroupDurationFlag(addPatternFlag(addOutputFlag(addRangeFlags(nil, false)))),
+				Usage: "Count number of \"transactions\" over time in the data",
+				Action: makeAction(func(c *cli.Context, blockchain core.Blockchain) error {
+					duration, err := time.ParseDuration(c.String("duration"))
+					if err != nil {
+						return err
+					}
+					counts, err := processor.CountTransactionsOverTime(
+						blockchain, c.String("pattern"),
+						c.Uint64("start"), c.Uint64("end"), duration)
 					if err != nil {
 						return err
 					}

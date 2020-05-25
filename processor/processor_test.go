@@ -72,10 +72,10 @@ func TestCountActions(t *testing.T) {
 	assert.Equal(t, uint64(3088), actionsCount.Get("OfferCreate"))
 }
 
-func TestCountActionsPerTime(t *testing.T) {
+func TestCountActionsOverTime(t *testing.T) {
 	blockchain := xrp.New()
 	filepath := core.GetFixture(core.XRPValidLedgersFilename)
-	actionsCount, err := CountActionsPerTime(
+	actionsCount, err := CountActionsOverTime(
 		blockchain, filepath, uint64(0), uint64(0), time.Minute, core.ActionName)
 	assert.Nil(t, err)
 	assert.Len(t, actionsCount.Actions, 7)
@@ -85,4 +85,17 @@ func TestCountActionsPerTime(t *testing.T) {
 	beforeLastGroup := time.Date(2020, 3, 27, 20, 54, 0, 0, time.UTC)
 	assert.Contains(t, actionsCount.Actions, beforeLastGroup)
 	assert.Equal(t, uint64(519), actionsCount.Actions[beforeLastGroup].Get("OfferCreate"))
+}
+
+func TestCountTransactionsOverTime(t *testing.T) {
+	blockchain := xrp.New()
+	filepath := core.GetFixture(core.XRPValidLedgersFilename)
+	actionsCount, err := CountTransactionsOverTime(
+		blockchain, filepath, uint64(0), uint64(0), time.Minute)
+	assert.Nil(t, err)
+	assert.Len(t, actionsCount.TransactionCounts, 7)
+	lastGroup := time.Date(2020, 3, 27, 20, 55, 0, 0, time.UTC)
+	assert.Equal(t, 451, actionsCount.TransactionCounts[lastGroup])
+	beforeLastGroup := time.Date(2020, 3, 27, 20, 54, 0, 0, time.UTC)
+	assert.Equal(t, 803, actionsCount.TransactionCounts[beforeLastGroup])
 }

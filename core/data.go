@@ -81,3 +81,23 @@ func (g *GroupedActions) AddActions(timestamp time.Time, actions *ActionsCount) 
 	}
 	g.Actions[group].Merge(actions)
 }
+
+type GroupedTransactionCount struct {
+	TransactionCounts map[time.Time]int
+	GroupedBy         time.Duration
+}
+
+func NewGroupedTransactionCount(duration time.Duration) *GroupedTransactionCount {
+	return &GroupedTransactionCount{
+		TransactionCounts: make(map[time.Time]int),
+		GroupedBy:         duration,
+	}
+}
+
+func (g *GroupedTransactionCount) AddBlock(block Block) {
+	group := block.Time().Truncate(g.GroupedBy)
+	if _, ok := g.TransactionCounts[group]; !ok {
+		g.TransactionCounts[group] = 0
+	}
+	g.TransactionCounts[group] += block.TransactionsCount()
+}
