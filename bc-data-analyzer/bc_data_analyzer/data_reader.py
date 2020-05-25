@@ -1,15 +1,5 @@
-from collections import defaultdict
 import datetime as dt
 import json
-from typing import List, Tuple, Dict
-
-
-def count_actions_over_time(actions: List[Tuple[dt.datetime, dict]]) -> Dict[str, int]:
-    result = defaultdict(int)
-    for _, actions_count in actions:
-        for action, count in actions_count.items():
-            result[action] += count
-    return result
 
 
 def read_actions_over_time(filename: str):
