@@ -30,11 +30,9 @@ func TestParseRawLedgerSimpleFormat(t *testing.T) {
 	assert.Equal(t, uint64(50387844), ledger.Number())
 }
 
-func TestGetActionsCount(t *testing.T) {
+func TestListActions(t *testing.T) {
 	rawLedger := core.ReadAllBlocks("xrp")[0]
 	ledger, _ := ParseRawLedger(rawLedger)
-	actionsCount := ledger.GetActionsCount(core.ActionName)
-	assert.Equal(t, uint64(7), actionsCount.Get("Payment"))
-	assert.Equal(t, uint64(25), actionsCount.Get("OfferCreate"))
-	assert.Equal(t, uint64(1), actionsCount.Get("OfferCancel"))
+	actions := ledger.ListActions()
+	assert.Len(t, actions, 33)
 }

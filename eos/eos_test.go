@@ -28,14 +28,9 @@ func TestParseBlockWithoutTrx(t *testing.T) {
 	assert.Equal(t, 10, block.TransactionsCount())
 }
 
-func TestActionsCount(t *testing.T) {
+func TestListActions(t *testing.T) {
 	rawBlock := core.ReadAllBlocks("eos")[0]
 	block, _ := New().ParseBlock(rawBlock)
-	actionsCount := block.GetActionsCount(core.ActionName)
-	assert.Equal(t, uint64(170), actionsCount.Get("transfer"))
-	assert.Equal(t, uint64(1), actionsCount.Get("updaterating"))
-	assert.Equal(t, uint64(1), actionsCount.Get("write"))
-	assert.Equal(t, uint64(1), actionsCount.Get("clearing"))
-	assert.Equal(t, uint64(1), actionsCount.Get("reveal"))
-	assert.Equal(t, uint64(1), actionsCount.Get("cancelorder"))
+	actions := block.ListActions()
+	assert.Len(t, actions, 176)
 }

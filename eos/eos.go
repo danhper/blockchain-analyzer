@@ -53,7 +53,7 @@ func (t *MapOrString) UnmarshalJSON(b []byte) error {
 
 type Action struct {
 	Account       string
-	Name          string
+	ActionName    string `json:"name"`
 	Authorization []struct {
 		Actor      string
 		Permission string
@@ -141,27 +141,27 @@ func (b *Block) TransactionsCount() int {
 	return len(b.Transactions)
 }
 
-func (b *Block) Actions() []Action {
-	var actions []Action
+func (b *Block) ListActions() []core.Action {
+	var actions []core.Action
 	for _, transaction := range b.Transactions {
 		for _, action := range transaction.Trx.Transaction.Actions {
-			actions = append(actions, action)
+			actions = append(actions, &action)
 		}
 	}
 	return actions
 }
 
-func (b *Block) GetActionsCount(prop core.ActionProperty) *core.ActionsCount {
-	if prop != core.ActionName {
-		panic(fmt.Errorf("action's %d not supported in XRP", prop))
+func (a *Action) Name() string {
+	return a.ActionName
+}
+
+func (a *Action) Sender() string {
+	if len(a.Authorization) == 0 {
+		return ""
 	}
-	actionsCount := core.NewActionsCount()
-	for _, action := range b.Actions() {
-		if prop == core.ActionName {
-			actionsCount.Increment(action.Name)
-		} else {
-			actionsCount.Increment(action.Account)
-		}
-	}
-	return actionsCount
+	return a.Authorization[0].Actor
+}
+
+func (a *Action) Receiver() string {
+	return a.Account
 }

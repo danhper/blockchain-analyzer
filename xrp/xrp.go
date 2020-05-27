@@ -22,6 +22,7 @@ func New() *XRP {
 type Transaction struct {
 	Account         string
 	TransactionType string
+	Destination     string
 }
 
 type Ledger struct {
@@ -82,10 +83,22 @@ func (l *Ledger) TransactionsCount() int {
 	return len(l.Transactions)
 }
 
-func (l *Ledger) GetActionsCount(prop core.ActionProperty) *core.ActionsCount {
-	actionsCount := core.NewActionsCount()
-	for _, transaction := range l.Transactions {
-		actionsCount.Increment(transaction.TransactionType)
+func (l *Ledger) ListActions() []core.Action {
+	var actions []core.Action
+	for _, t := range l.Transactions {
+		actions = append(actions, t)
 	}
-	return actionsCount
+	return actions
+}
+
+func (t Transaction) Sender() string {
+	return t.Account
+}
+
+func (t Transaction) Receiver() string {
+	return t.Destination
+}
+
+func (t Transaction) Name() string {
+	return t.TransactionType
 }

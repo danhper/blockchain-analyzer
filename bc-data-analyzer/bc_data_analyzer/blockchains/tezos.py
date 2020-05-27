@@ -24,13 +24,19 @@ class Tezos(Blockchain):
 
         labels = [a.capitalize() for a in top_actions] + ["Other"]
         dates = [a[0] for a in actions]
-        ys = np.array([self._transform_action(a, top_actions) for _, a in actions]).T
+        ys = np.array([self._transform_action(a["Actions"], top_actions) for _, a in actions]).T
         return labels, dates, ys, plot_utils.make_palette("blue", "green", "brown")
 
     @staticmethod
-    def _transform_action(actions: dict, top_actions: dict) -> dict:
+    def _find_action_count(actions: List[dict], name: str) -> int:
+        for action in actions:
+            if action["Name"] == name:
+                return action["Count"]
+        return 0
+
+    def _transform_action(self, actions: dict, top_actions: dict) -> dict:
         result = []
         for action in top_actions:
-            result.append(actions.get(action, 0))
-        result.append(sum(v for k, v in actions.items() if k not in top_actions))
+            result.append(self._find_action_count(actions, action))
+        result.append(sum(a["Count"] for a in actions if a["Name"] not in top_actions))
         return result

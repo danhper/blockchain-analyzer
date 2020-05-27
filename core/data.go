@@ -3,7 +3,10 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 	"time"
+
+	"github.com/danhper/structomap"
 )
 
 type ActionProperty int
@@ -11,6 +14,12 @@ type ActionProperty int
 const (
 	ActionName ActionProperty = iota
 	ActionSender
+	ActionReceiver
+)
+
+const (
+	maxTopLevelResults = 1000
+	maxNestedResults   = 50
 )
 
 func GetActionProperty(name string) (ActionProperty, error) {
@@ -19,37 +28,79 @@ func GetActionProperty(name string) (ActionProperty, error) {
 		return ActionName, nil
 	case "sender":
 		return ActionSender, nil
+	case "receiver":
+		return ActionReceiver, nil
 	default:
 		return ActionName, fmt.Errorf("no property %s for actions", name)
 	}
 }
 
+func (p ActionProperty) String() string {
+	switch p {
+	case ActionName:
+		return "name"
+	case ActionSender:
+		return "sender"
+	case ActionReceiver:
+		return "receiver"
+	default:
+		panic(fmt.Errorf("no such action property"))
+	}
+}
+
 type ActionsCount struct {
-	actions map[string]uint64
+	Actions     map[string]uint64
+	UniqueCount uint64
+	TotalCount  uint64
 }
 
 func NewActionsCount() *ActionsCount {
 	return &ActionsCount{
-		actions: make(map[string]uint64),
+		Actions: make(map[string]uint64),
 	}
 }
 
-func (a *ActionsCount) Increment(action string) {
-	a.actions[action] += 1
+func (a *ActionsCount) Increment(key string) {
+	a.TotalCount++
+	if _, ok := a.Actions[key]; !ok {
+		a.UniqueCount++
+	}
+	a.Actions[key] += 1
 }
 
-func (a *ActionsCount) Get(action string) uint64 {
-	return a.actions[action]
+func (a *ActionsCount) Get(key string) uint64 {
+	return a.Actions[key]
 }
 
 func (a *ActionsCount) Merge(other *ActionsCount) {
-	for key, value := range other.actions {
-		a.actions[key] += value
+	for key, value := range other.Actions {
+		a.Actions[key] += value
 	}
 }
 
+type NamedCount struct {
+	Name  string
+	Count uint64
+}
+
+var actionsCountSerializer = structomap.New().
+	PickFunc(func(actions interface{}) interface{} {
+		var results []NamedCount
+		for name, count := range actions.(map[string]uint64) {
+			results = append(results, NamedCount{Name: name, Count: count})
+		}
+		sort.Slice(results, func(i, j int) bool {
+			return results[i].Count > results[j].Count
+		})
+		if len(results) > maxNestedResults {
+			results = results[:maxNestedResults]
+		}
+		return results
+	}, "Actions").
+	Pick("UniqueCount", "TotalCount")
+
 func (a *ActionsCount) MarshalJSON() ([]byte, error) {
-	return json.Marshal(a.actions)
+	return json.Marshal(actionsCountSerializer.Transform(a))
 }
 
 func Persist(entity interface{}, outputFile string) error {
@@ -62,42 +113,160 @@ func Persist(entity interface{}, outputFile string) error {
 	return encoder.Encode(entity)
 }
 
-type GroupedActions struct {
-	Actions   map[time.Time]*ActionsCount
-	GroupedBy time.Duration
+type TimeGroupedActions struct {
+	Actions   map[time.Time]*GroupedActions
+	Duration  time.Duration
+	GroupedBy ActionProperty
 }
 
-func NewGroupedActions(duration time.Duration) *GroupedActions {
-	return &GroupedActions{
-		Actions:   make(map[time.Time]*ActionsCount),
-		GroupedBy: duration,
+func NewTimeGroupedActions(duration time.Duration, by ActionProperty) *TimeGroupedActions {
+	return &TimeGroupedActions{
+		Actions:   make(map[time.Time]*GroupedActions),
+		Duration:  duration,
+		GroupedBy: by,
 	}
 }
 
-func (g *GroupedActions) AddActions(timestamp time.Time, actions *ActionsCount) {
-	group := timestamp.Truncate(g.GroupedBy)
+func (g *TimeGroupedActions) AddBlock(timestamp time.Time, block Block) {
+	group := timestamp.Truncate(g.Duration)
 	if _, ok := g.Actions[group]; !ok {
-		g.Actions[group] = NewActionsCount()
+		g.Actions[group] = NewGroupedActions(g.GroupedBy, false)
 	}
-	g.Actions[group].Merge(actions)
+	g.Actions[group].AddBlock(block)
 }
 
-type GroupedTransactionCount struct {
+type TimeGroupedTransactionCount struct {
 	TransactionCounts map[time.Time]int
 	GroupedBy         time.Duration
 }
 
-func NewGroupedTransactionCount(duration time.Duration) *GroupedTransactionCount {
-	return &GroupedTransactionCount{
+func NewTimeGroupedTransactionCount(duration time.Duration) *TimeGroupedTransactionCount {
+	return &TimeGroupedTransactionCount{
 		TransactionCounts: make(map[time.Time]int),
 		GroupedBy:         duration,
 	}
 }
 
-func (g *GroupedTransactionCount) AddBlock(block Block) {
+func (g *TimeGroupedTransactionCount) AddBlock(block Block) {
 	group := block.Time().Truncate(g.GroupedBy)
 	if _, ok := g.TransactionCounts[group]; !ok {
 		g.TransactionCounts[group] = 0
 	}
 	g.TransactionCounts[group] += block.TransactionsCount()
+}
+
+type ActionGroup struct {
+	Name      string
+	Count     uint64
+	Names     *ActionsCount
+	Senders   *ActionsCount
+	Receivers *ActionsCount
+}
+
+var actionGroupSerializer = structomap.New().
+	Pick("Name", "Count").
+	PickIf(func(a interface{}) bool {
+		return a.(*ActionGroup).Names.TotalCount > 0
+	}, "Names", "Senders", "Receivers")
+
+func (a *ActionGroup) MarshalJSON() ([]byte, error) {
+	return json.Marshal(actionGroupSerializer.Transform(a))
+}
+
+func NewActionGroup(name string) *ActionGroup {
+	return &ActionGroup{
+		Name:      name,
+		Count:     0,
+		Names:     NewActionsCount(),
+		Senders:   NewActionsCount(),
+		Receivers: NewActionsCount(),
+	}
+}
+
+type GroupedActions struct {
+	Actions        map[string]*ActionGroup
+	GroupedBy      string
+	BlocksCount    uint64
+	ActionsCount   uint64
+	actionProperty ActionProperty
+	detailed       bool
+}
+
+var groupedActionsSerializer = structomap.New().
+	PickFunc(func(actions interface{}) interface{} {
+		var results []*ActionGroup
+		for _, action := range actions.(map[string]*ActionGroup) {
+			results = append(results, action)
+		}
+		sort.Slice(results, func(i, j int) bool {
+			return results[i].Count > results[j].Count
+		})
+		if len(results) > maxTopLevelResults {
+			results = results[:maxTopLevelResults]
+		}
+		return results
+	}, "Actions").
+	Pick("GroupedBy", "BlocksCount", "ActionsCount")
+
+func (g *GroupedActions) MarshalJSON() ([]byte, error) {
+	return json.Marshal(groupedActionsSerializer.Transform(g))
+}
+
+func (g *GroupedActions) Get(key string) *ActionGroup {
+	return g.Actions[key]
+}
+
+func (g *GroupedActions) GetCount(key string) uint64 {
+	group := g.Get(key)
+	if group == nil {
+		return 0
+	}
+	return group.Count
+}
+
+func NewGroupedActions(by ActionProperty, detailed bool) *GroupedActions {
+	actions := make(map[string]*ActionGroup)
+	return &GroupedActions{
+		Actions:        actions,
+		GroupedBy:      by.String(),
+		BlocksCount:    0,
+		ActionsCount:   0,
+		actionProperty: by,
+		detailed:       detailed,
+	}
+}
+
+func (g *GroupedActions) getActionKey(action Action) string {
+	switch g.actionProperty {
+	case ActionName:
+		return action.Name()
+	case ActionSender:
+		return action.Sender()
+	case ActionReceiver:
+		return action.Receiver()
+	default:
+		panic(fmt.Errorf("no such property %d", g.actionProperty))
+	}
+}
+
+func (g *GroupedActions) AddBlock(block Block) {
+	g.BlocksCount += 1
+	for _, action := range block.ListActions() {
+		g.ActionsCount += 1
+		key := g.getActionKey(action)
+		if key == "" {
+			continue
+		}
+		actionGroup, ok := g.Actions[key]
+		if !ok {
+			actionGroup = NewActionGroup(key)
+			g.Actions[key] = actionGroup
+		}
+		actionGroup.Count += 1
+		if g.detailed {
+			actionGroup.Names.Increment(action.Name())
+			actionGroup.Senders.Increment(action.Sender())
+			actionGroup.Receivers.Increment(action.Receiver())
+		}
+	}
 }

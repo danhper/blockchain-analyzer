@@ -63,15 +63,6 @@ func TestYieldAllDuplicated(t *testing.T) {
 	assert.Equal(t, 3, len(blocks))
 }
 
-func TestCountActions(t *testing.T) {
-	blockchain := xrp.New()
-	filepath := core.GetFixture(core.XRPValidLedgersFilename)
-	actionsCount, err := CountActions(blockchain, filepath, uint64(0), uint64(0))
-	assert.Nil(t, err)
-	assert.Equal(t, uint64(1129), actionsCount.Get("Payment"))
-	assert.Equal(t, uint64(3088), actionsCount.Get("OfferCreate"))
-}
-
 func TestCountActionsOverTime(t *testing.T) {
 	blockchain := xrp.New()
 	filepath := core.GetFixture(core.XRPValidLedgersFilename)
@@ -81,10 +72,10 @@ func TestCountActionsOverTime(t *testing.T) {
 	assert.Len(t, actionsCount.Actions, 7)
 	lastGroup := time.Date(2020, 3, 27, 20, 55, 0, 0, time.UTC)
 	assert.Contains(t, actionsCount.Actions, lastGroup)
-	assert.Equal(t, uint64(96), actionsCount.Actions[lastGroup].Get("Payment"))
+	assert.Equal(t, uint64(96), actionsCount.Actions[lastGroup].GetCount("Payment"))
 	beforeLastGroup := time.Date(2020, 3, 27, 20, 54, 0, 0, time.UTC)
 	assert.Contains(t, actionsCount.Actions, beforeLastGroup)
-	assert.Equal(t, uint64(519), actionsCount.Actions[beforeLastGroup].Get("OfferCreate"))
+	assert.Equal(t, uint64(519), actionsCount.Actions[beforeLastGroup].GetCount("OfferCreate"))
 }
 
 func TestCountTransactionsOverTime(t *testing.T) {
@@ -98,4 +89,14 @@ func TestCountTransactionsOverTime(t *testing.T) {
 	assert.Equal(t, 451, actionsCount.TransactionCounts[lastGroup])
 	beforeLastGroup := time.Date(2020, 3, 27, 20, 54, 0, 0, time.UTC)
 	assert.Equal(t, 803, actionsCount.TransactionCounts[beforeLastGroup])
+}
+
+func TestGroupActions(t *testing.T) {
+	blockchain := xrp.New()
+	filepath := core.GetFixture(core.XRPValidLedgersFilename)
+	actionsCount, err := GroupActions(
+		blockchain, filepath, uint64(0), uint64(0), core.ActionName, false)
+	assert.Nil(t, err)
+	assert.Equal(t, uint64(1129), actionsCount.GetCount("Payment"))
+	assert.Equal(t, uint64(3088), actionsCount.GetCount("OfferCreate"))
 }

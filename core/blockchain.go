@@ -13,6 +13,12 @@ type Blockchain interface {
 type Block interface {
 	Number() uint64
 	TransactionsCount() int
-	GetActionsCount(ActionProperty) *ActionsCount
 	Time() time.Time
+	ListActions() []Action
+}
+
+type Action interface {
+	Sender() string
+	Receiver() string
+	Name() string
 }

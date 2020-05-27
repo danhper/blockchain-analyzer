@@ -31,7 +31,10 @@ func (t *Tezos) FetchData(filepath string, start, end uint64) error {
 }
 
 type Content struct {
-	Kind string
+	Kind        string
+	Source      string
+	Destination string
+	Amount      string
 }
 
 type Operation struct {
@@ -94,25 +97,26 @@ func (b *Block) TransactionsCount() int {
 	return total
 }
 
-func (b *Block) AllOperations() []Operation {
-	var result []Operation
+func (b *Block) ListActions() []core.Action {
+	var result []core.Action
 	for _, operations := range b.Operations {
 		for _, operation := range operations {
-			result = append(result, operation)
+			for _, content := range operation.Contents {
+				result = append(result, content)
+			}
 		}
 	}
 	return result
 }
 
-func (b *Block) GetActionsCount(prop core.ActionProperty) *core.ActionsCount {
-	if prop != core.ActionName {
-		panic(fmt.Errorf("action's %d not supported in Tezos", prop))
-	}
-	actionsCount := core.NewActionsCount()
-	for _, operation := range b.AllOperations() {
-		for _, content := range operation.Contents {
-			actionsCount.Increment(content.Kind)
-		}
-	}
-	return actionsCount
+func (c Content) Name() string {
+	return c.Kind
+}
+
+func (c Content) Receiver() string {
+	return c.Destination
+}
+
+func (c Content) Sender() string {
+	return c.Source
 }

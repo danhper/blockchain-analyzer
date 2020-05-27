@@ -207,43 +207,31 @@ func CountTransactions(blockchain core.Blockchain, globPattern string, start, en
 	return totalCount, nil
 }
 
-func CountActions(blockchain core.Blockchain, globPattern string, start, end uint64) (*core.ActionsCount, error) {
-	blocks, err := YieldAllBlocks(globPattern, blockchain, start, end)
-	if err != nil {
-		return nil, err
-	}
-	actionsCount := core.NewActionsCount()
-	for block := range blocks {
-		actionsCount.Merge(block.GetActionsCount(core.ActionName))
-	}
-	return actionsCount, nil
-}
-
 func CountActionsOverTime(
 	blockchain core.Blockchain,
 	globPattern string,
 	start, end uint64,
 	duration time.Duration,
-	actionProperty core.ActionProperty) (*core.GroupedActions, error) {
+	actionProperty core.ActionProperty) (*core.TimeGroupedActions, error) {
 	blocks, err := YieldAllBlocks(globPattern, blockchain, start, end)
 	if err != nil {
 		return nil, err
 	}
-	result := core.NewGroupedActions(duration)
+	result := core.NewTimeGroupedActions(duration, actionProperty)
 	for block := range blocks {
-		result.AddActions(block.Time(), block.GetActionsCount(actionProperty))
+		result.AddBlock(block.Time(), block)
 	}
 	return result, nil
 }
 
 func CountTransactionsOverTime(blockchain core.Blockchain, globPattern string,
 	start, end uint64, duration time.Duration,
-) (*core.GroupedTransactionCount, error) {
+) (*core.TimeGroupedTransactionCount, error) {
 	blocks, err := YieldAllBlocks(globPattern, blockchain, start, end)
 	if err != nil {
 		return nil, err
 	}
-	result := core.NewGroupedTransactionCount(duration)
+	result := core.NewTimeGroupedTransactionCount(duration)
 	for block := range blocks {
 		result.AddBlock(block)
 	}
@@ -313,4 +301,18 @@ func ExportToMsgpack(
 	close(fileDone)
 
 	return nil
+}
+
+func GroupActions(blockchain core.Blockchain, globPattern string,
+	start, end uint64, by core.ActionProperty, detailed bool,
+) (*core.GroupedActions, error) {
+	blocks, err := YieldAllBlocks(globPattern, blockchain, start, end)
+	if err != nil {
+		return nil, err
+	}
+	groupedActions := core.NewGroupedActions(by, detailed)
+	for block := range blocks {
+		groupedActions.AddBlock(block)
+	}
+	return groupedActions, nil
 }

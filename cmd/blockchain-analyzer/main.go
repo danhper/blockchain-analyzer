@@ -45,9 +45,9 @@ func addOutputFlag(flags []cli.Flag) []cli.Flag {
 
 func addActionPropertyFlag(flags []cli.Flag) []cli.Flag {
 	return append(flags, &cli.StringFlag{
-		Name:  "property",
+		Name:  "by",
 		Value: "name",
-		Usage: "Property to use for actions",
+		Usage: "Property to group the actions by",
 	})
 }
 
@@ -88,6 +88,15 @@ func addBlockchainFlag(flags []cli.Flag) []cli.Flag {
 			Required: true,
 		},
 	)
+}
+
+func addDetailedFlag(flags []cli.Flag) []cli.Flag {
+	return append(flags, &cli.BoolFlag{
+		Name:     "detailed",
+		Usage:    "Whether to add the details about sender/receivers etc",
+		Value:    false,
+		Required: false,
+	})
 }
 
 func blockchainFromCLI(c *cli.Context) (core.Blockchain, error) {
@@ -153,13 +162,19 @@ func main() {
 				}),
 			},
 			{
-				Name:  "count-actions",
-				Flags: addPatternFlag(addOutputFlag(addRangeFlags(nil, false))),
+				Name: "group-actions",
+				Flags: addDetailedFlag(addActionPropertyFlag(
+					addPatternFlag(addOutputFlag(addRangeFlags(nil, false))))),
 				Usage: "Count and groups the number of \"actions\" in the data",
 				Action: makeAction(func(c *cli.Context, blockchain core.Blockchain) error {
-					counts, err := processor.CountActions(
+					actionProperty, err := core.GetActionProperty(c.String("by"))
+					if err != nil {
+						return err
+					}
+					counts, err := processor.GroupActions(
 						blockchain, c.String("pattern"),
-						c.Uint64("start"), c.Uint64("end"))
+						c.Uint64("start"), c.Uint64("end"),
+						actionProperty, c.Bool("detailed"))
 					if err != nil {
 						return err
 					}
@@ -167,7 +182,7 @@ func main() {
 				}),
 			},
 			{
-				Name: "count-actions-over-time",
+				Name: "group-actions-over-time",
 				Flags: addActionPropertyFlag(addGroupDurationFlag(
 					addPatternFlag(addOutputFlag(addRangeFlags(nil, false))))),
 				Usage: "Count and groups per time the number of \"actions\" in the data",
@@ -176,7 +191,7 @@ func main() {
 					if err != nil {
 						return err
 					}
-					actionProperty, err := core.GetActionProperty(c.String("property"))
+					actionProperty, err := core.GetActionProperty(c.String("by"))
 					if err != nil {
 						return err
 					}
