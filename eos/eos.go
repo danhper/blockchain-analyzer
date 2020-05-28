@@ -99,6 +99,7 @@ type Block struct {
 	Timestamp    string
 	parsedTime   time.Time
 	Transactions []FullTransaction
+	actions      []core.Action
 }
 
 func New() *EOS {
@@ -142,12 +143,16 @@ func (b *Block) TransactionsCount() int {
 }
 
 func (b *Block) ListActions() []core.Action {
+	if len(b.actions) > 0 {
+		return b.actions
+	}
 	var actions []core.Action
 	for _, transaction := range b.Transactions {
 		for _, action := range transaction.Trx.Transaction.Actions {
 			actions = append(actions, &action)
 		}
 	}
+	b.actions = actions
 	return actions
 }
 

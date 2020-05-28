@@ -51,6 +51,7 @@ type BlockHeader struct {
 type Block struct {
 	Header     BlockHeader
 	Operations [][]Operation
+	actions    []core.Action
 }
 
 func New() *Tezos {
@@ -98,6 +99,9 @@ func (b *Block) TransactionsCount() int {
 }
 
 func (b *Block) ListActions() []core.Action {
+	if len(b.actions) > 0 {
+		return b.actions
+	}
 	var result []core.Action
 	for _, operations := range b.Operations {
 		for _, operation := range operations {
@@ -106,6 +110,7 @@ func (b *Block) ListActions() []core.Action {
 			}
 		}
 	}
+	b.actions = result
 	return result
 }
 
