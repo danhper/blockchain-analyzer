@@ -1,49 +1,49 @@
 {
-  "pattern": "/mnt/data/daniel/research-data/transactional-throughput/tezos/*.jsonl.gz",
-  "startBlock": 630709,
-  "endBlock": 932530,
-  "processors": [
+  "Pattern": "/mnt/data/daniel/research-data/transactional-throughput/tezos/*.jsonl.gz",
+  "StartBlock": 630709,
+  "EndBlock": 932530,
+  "Processors": [
     {
-      "name": "TransactionsCount",
-      "type": "count-transactions"
+      "Name": "TransactionsCount",
+      "Type": "count-transactions"
     },
     {
-      "name": "TransactionsCountOverTime",
-      "type": "count-transactions-over-time",
-      "params": {
-        "duration": "6h"
+      "Name": "TransactionsCountOverTime",
+      "Type": "count-transactions-over-time",
+      "Params": {
+        "Duration": "6h"
       }
     },
     {
-      "name": "GroupedActionsOverTime",
-      "type": "group-actions-over-time",
-      "params": {
-        "by": "name",
-        "duration": "6h"
+      "Name": "GroupedActionsOverTime",
+      "Type": "group-actions-over-time",
+      "Params": {
+        "By": "name",
+        "Duration": "6h"
       }
     },
     {
-      "name": "ActionsByName",
-      "type": "group-actions",
-      "params": {
-        "by": "name",
-        "detailed": false
+      "Name": "ActionsByName",
+      "Type": "group-actions",
+      "Params": {
+        "By": "name",
+        "Detailed": false
       }
     },
     {
-      "name": "ActionsBySender",
-      "type": "group-actions",
-      "params": {
-        "by": "sender",
-        "detailed": true
+      "Name": "ActionsBySender",
+      "Type": "group-actions",
+      "Params": {
+        "By": "sender",
+        "Detailed": true
       }
     },
     {
-      "name": "ActionsByReceiver",
-      "type": "group-actions",
-      "params": {
-        "by": "receiver",
-        "detailed": true
+      "Name": "ActionsByReceiver",
+      "Type": "group-actions",
+      "Params": {
+        "By": "receiver",
+        "Detailed": true
       }
     }
   ]

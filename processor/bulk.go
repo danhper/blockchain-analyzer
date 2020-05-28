@@ -46,8 +46,8 @@ type BulkConfig struct {
 		Name   string
 		Type   string
 		Params json.RawMessage
-	} `json:"processors"`
-	Processors []Processor
+	} `json:"Processors"`
+	Processors []Processor `json:"-"`
 }
 
 func (c *BulkConfig) UnmarshalJSON(data []byte) error {

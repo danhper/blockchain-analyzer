@@ -1,7 +1,7 @@
 {
   "Pattern": "/mnt/quantum/dp4318/research-data/eos/eos_blocks-*.jsonl.gz",
-  "StartBlock": 82152667,
-  "EndBlock": 118286375,
+  "StartBlock": 50399027,
+  "EndBlock": 55152991,
   "Processors": [
     {
       "Name": "TransactionsCount",

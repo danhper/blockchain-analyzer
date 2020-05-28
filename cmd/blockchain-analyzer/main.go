@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime/pprof"
 	"time"
 
 	"github.com/danhper/blockchain-analyzer/core"
@@ -109,6 +110,15 @@ func addDetailedFlag(flags []cli.Flag) []cli.Flag {
 	})
 }
 
+func addCpuProfileFlag(flags []cli.Flag) []cli.Flag {
+	return append(flags, &cli.StringFlag{
+		Name:     "cpu-profile",
+		Usage:    "Path where to store the CPU profile",
+		Value:    "",
+		Required: false,
+	})
+}
+
 func blockchainFromCLI(c *cli.Context) (core.Blockchain, error) {
 	switch c.String("blockchain") {
 	case "xrp":
@@ -125,6 +135,19 @@ func blockchainFromCLI(c *cli.Context) (core.Blockchain, error) {
 
 func makeAction(f func(*cli.Context, core.Blockchain) error) func(*cli.Context) error {
 	return func(c *cli.Context) error {
+		cpuProfile := c.String("cpu-profile")
+		if cpuProfile != "" {
+			f, err := os.Create(cpuProfile)
+			if err != nil {
+				return fmt.Errorf("could not create CPU profile: %s", err.Error())
+			}
+			defer f.Close()
+			if err := pprof.StartCPUProfile(f); err != nil {
+				return fmt.Errorf("could not start CPU profile: %s", err.Error())
+			}
+			defer pprof.StopCPUProfile()
+		}
+
 		blockchain, err := blockchainFromCLI(c)
 		if err != nil {
 			return err
@@ -136,7 +159,7 @@ func makeAction(f func(*cli.Context, core.Blockchain) error) func(*cli.Context) 
 func main() {
 	app := &cli.App{
 		Usage: "Tool to fetch and analyze blockchain transactions",
-		Flags: addBlockchainFlag(nil),
+		Flags: addCpuProfileFlag(addBlockchainFlag(nil)),
 		Commands: []*cli.Command{
 			{
 				Name:  "fetch",
