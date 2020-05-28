@@ -127,8 +127,8 @@ func NewTimeGroupedActions(duration time.Duration, by ActionProperty) *TimeGroup
 	}
 }
 
-func (g *TimeGroupedActions) AddBlock(timestamp time.Time, block Block) {
-	group := timestamp.Truncate(g.Duration)
+func (g *TimeGroupedActions) AddBlock(block Block) {
+	group := block.Time().Truncate(g.Duration)
 	if _, ok := g.Actions[group]; !ok {
 		g.Actions[group] = NewGroupedActions(g.GroupedBy, false)
 	}
@@ -269,4 +269,15 @@ func (g *GroupedActions) AddBlock(block Block) {
 			actionGroup.Receivers.Increment(action.Receiver())
 		}
 	}
+}
+
+type TransactionCounter int
+
+func NewTransactionCounter() *TransactionCounter {
+	value := 0
+	return (*TransactionCounter)(&value)
+}
+
+func (t *TransactionCounter) AddBlock(block Block) {
+	*t += (TransactionCounter)(block.TransactionsCount())
 }

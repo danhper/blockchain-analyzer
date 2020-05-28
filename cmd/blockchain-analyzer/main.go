@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -39,6 +40,15 @@ func addOutputFlag(flags []cli.Flag) []cli.Flag {
 		Name:     "output",
 		Aliases:  []string{"o"},
 		Usage:    "Base output filepath",
+		Required: true,
+	})
+}
+
+func addConfigFlag(flags []cli.Flag) []cli.Flag {
+	return append(flags, &cli.StringFlag{
+		Name:     "config",
+		Aliases:  []string{"c"},
+		Usage:    "Configuration file",
 		Required: true,
 	})
 }
@@ -221,6 +231,28 @@ func main() {
 						return err
 					}
 					return core.Persist(counts, c.String("output"))
+				}),
+			},
+			{
+				Name:  "bulk-process",
+				Flags: addConfigFlag(addOutputFlag(nil)),
+				Usage: "Bulk process the data according to the given configuration file",
+				Action: makeAction(func(c *cli.Context, blockchain core.Blockchain) error {
+					file, err := os.Open(c.String("config"))
+					if err != nil {
+						return err
+					}
+					defer file.Close()
+
+					var config processor.BulkConfig
+					if err := json.NewDecoder(file).Decode(&config); err != nil {
+						return err
+					}
+					result, err := processor.RunBulkActions(blockchain, config)
+					if err != nil {
+						return err
+					}
+					return core.Persist(result, c.String("output"))
 				}),
 			},
 			{

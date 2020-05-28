@@ -1,0 +1,50 @@
+{
+  "pattern": "/mnt/data/daniel/research-data/transactional-throughput/tezos/*.jsonl.gz",
+  "startBlock": 630709,
+  "endBlock": 932530,
+  "processors": [
+    {
+      "name": "TransactionsCount",
+      "type": "count-transactions"
+    },
+    {
+      "name": "TransactionsCountOverTime",
+      "type": "count-transactions-over-time",
+      "params": {
+        "duration": "6h"
+      }
+    },
+    {
+      "name": "GroupedActionsOverTime",
+      "type": "group-actions-over-time",
+      "params": {
+        "by": "name",
+        "duration": "6h"
+      }
+    },
+    {
+      "name": "ActionsByName",
+      "type": "group-actions",
+      "params": {
+        "by": "name",
+        "detailed": false
+      }
+    },
+    {
+      "name": "ActionsBySender",
+      "type": "group-actions",
+      "params": {
+        "by": "sender",
+        "detailed": true
+      }
+    },
+    {
+      "name": "ActionsByReceiver",
+      "type": "group-actions",
+      "params": {
+        "by": "receiver",
+        "detailed": true
+      }
+    }
+  ]
+}
