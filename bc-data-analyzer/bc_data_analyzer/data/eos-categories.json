@@ -1,11 +1,11 @@
 {
-  "names": [
-    "exchange",
-    "betting",
-    "games",
-    "pornography",
-    "tokens",
-    "others"
+  "categories": [
+    {"name": "tokens", "color": "blue"},
+    {"name": "betting", "color": "gray"},
+    {"name": "exchange", "color": "green"},
+    {"name": "games", "color": "teal"},
+    {"name": "pornography", "color": "violet"},
+    {"name": "others", "color": "brown"}
   ],
   "mapping": {
     "betdicegroup": "betting",
