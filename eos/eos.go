@@ -1,6 +1,7 @@
 package eos
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,7 +14,7 @@ import (
 	"github.com/danhper/blockchain-analyzer/fetcher"
 )
 
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
+var fastJson = jsoniter.ConfigCompatibleWithStandardLibrary
 
 const (
 	defaultProducerURL string = "https://api.main.alohaeos.com:443"
@@ -35,22 +36,6 @@ func (e *EOS) FetchData(filepath string, start, end uint64) error {
 	return fetcher.FetchHTTPData(filepath, context)
 }
 
-type MapOrString map[string]interface{}
-
-func (t *MapOrString) UnmarshalJSON(b []byte) error {
-	if b[0] == '"' {
-		var id string
-		if err := json.Unmarshal(b, &id); err != nil {
-			return err
-		}
-		*t = MapOrString(make(map[string]interface{}))
-		return nil
-	} else if b[0] == '{' {
-		return json.Unmarshal(b, (*map[string]interface{})(t))
-	}
-	return fmt.Errorf("expected '{' or '\"', got %s", string(b))
-}
-
 type Action struct {
 	Account       string
 	ActionName    string `json:"name"`
@@ -58,7 +43,7 @@ type Action struct {
 		Actor      string
 		Permission string
 	}
-	Data MapOrString
+	Data json.RawMessage
 }
 
 type Transaction struct {
@@ -78,13 +63,13 @@ type TrxOrString Trx
 func (t *TrxOrString) UnmarshalJSON(b []byte) error {
 	if b[0] == '"' {
 		var id string
-		if err := json.Unmarshal(b, &id); err != nil {
+		if err := fastJson.Unmarshal(b, &id); err != nil {
 			return err
 		}
 		*t = TrxOrString{Id: id}
 		return nil
 	} else if b[0] == '{' {
-		return json.Unmarshal(b, (*Trx)(t))
+		return fastJson.Unmarshal(b, (*Trx)(t))
 	}
 	return fmt.Errorf("expected '{' or '\"', got %s", string(b))
 }
@@ -115,7 +100,7 @@ func New() *EOS {
 
 func (e *EOS) ParseBlock(rawBlock []byte) (core.Block, error) {
 	var block Block
-	if err := json.Unmarshal(rawBlock, &block); err != nil {
+	if err := fastJson.Unmarshal(rawBlock, &block); err != nil {
 		return nil, err
 	}
 	parsedTime, err := time.Parse(timeLayout, block.Timestamp)
@@ -123,7 +108,7 @@ func (e *EOS) ParseBlock(rawBlock []byte) (core.Block, error) {
 		return nil, err
 	}
 	block.parsedTime = parsedTime
-	return &block, json.Unmarshal(rawBlock, &block)
+	return &block, fastJson.Unmarshal(rawBlock, &block)
 }
 
 func (e *EOS) EmptyBlock() core.Block {
