@@ -1,5 +1,5 @@
 {
-  "Pattern": "/mnt/quantum/dp4318/research-data/eos/eos_blocks-*.jsonl.gz",
+  "Pattern": "/mnt/quantum/dp4318/research-data/xrp/xrp-ledgers-*.jsonl.gz",
   "StartBlock": 50399027,
   "EndBlock": 55152991,
   "Processors": [
