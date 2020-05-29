@@ -12,3 +12,7 @@ class Blockchain(BaseFactory):
     def transform_actions_over_time(self, actions: List[Tuple[dt.datetime, dict]]) \
         -> Tuple[List[dt.datetime], List[str], List[np.ndarray]]:
         pass
+
+    @abstractmethod
+    def generate_table(self, table_name: str, data: dict) -> str:
+        pass

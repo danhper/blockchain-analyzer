@@ -13,6 +13,10 @@ plot_action_over_time = subparsers.add_parser("plot-actions-over-time", help="Pl
 plot_action_over_time.add_argument("input", help="Input file containing actions over time")
 plot_action_over_time.add_argument("-o", "--output", help="Output file")
 
+generate_table = subparsers.add_parser("generate-table", help="Generate a table from the data")
+generate_table.add_argument("input", help="Input file containing results")
+generate_table.add_argument("-n", "--name", help="Name of the table to generate", required=True)
+
 
 def run():
     args = vars(parser.parse_args())

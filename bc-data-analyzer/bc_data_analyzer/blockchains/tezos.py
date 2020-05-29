@@ -40,3 +40,6 @@ class Tezos(Blockchain):
             result.append(self._find_action_count(actions, action))
         result.append(sum(a["Count"] for a in actions if a["Name"] not in top_actions))
         return result
+
+    def generate_table(self, table_name: str, results: dict) -> str:
+        raise ValueError("unknown table type {0}".format(table_name))
