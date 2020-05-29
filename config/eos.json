@@ -18,7 +18,7 @@
       "Name": "GroupedActionsOverTime",
       "Type": "group-actions-over-time",
       "Params": {
-        "By": "name",
+        "By": "receiver",
         "Duration": "6h"
       }
     },
