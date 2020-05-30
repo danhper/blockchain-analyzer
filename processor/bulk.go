@@ -3,13 +3,13 @@ package processor
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/danhper/blockchain-analyzer/core"
 )
 
 type Aggregator interface {
 	AddBlock(block core.Block)
+	Result() interface{}
 }
 
 type Processor struct {
@@ -25,17 +25,17 @@ func NewProcessor(name string, aggregator Aggregator) Processor {
 }
 
 type groupActionsParams struct {
-	By       string
+	By       core.ActionProperty
 	Detailed bool
 }
 
 type groupActionsOverTimeParams struct {
-	By       string
-	Duration string
+	By       core.ActionProperty
+	Duration core.Duration
 }
 
 type countTransactionsOverTimeParams struct {
-	Duration string
+	Duration core.Duration
 }
 
 type BulkConfig struct {
@@ -63,11 +63,7 @@ func (c *BulkConfig) UnmarshalJSON(data []byte) error {
 			if err := json.Unmarshal(rawProcessor.Params, &params); err != nil {
 				return err
 			}
-			property, err := core.GetActionProperty(params.By)
-			if err != nil {
-				return err
-			}
-			aggregator = core.NewGroupedActions(property, params.Detailed)
+			aggregator = core.NewGroupedActions(params.By, params.Detailed)
 
 		case "count-transactions":
 			aggregator = core.NewTransactionCounter()
@@ -77,26 +73,14 @@ func (c *BulkConfig) UnmarshalJSON(data []byte) error {
 			if err := json.Unmarshal(rawProcessor.Params, &params); err != nil {
 				return err
 			}
-			duration, err := time.ParseDuration(params.Duration)
-			if err != nil {
-				return err
-			}
-			aggregator = core.NewTimeGroupedTransactionCount(duration)
+			aggregator = core.NewTimeGroupedTransactionCount(params.Duration.Duration)
 
 		case "group-actions-over-time":
 			var params groupActionsOverTimeParams
 			if err := json.Unmarshal(rawProcessor.Params, &params); err != nil {
 				return err
 			}
-			duration, err := time.ParseDuration(params.Duration)
-			if err != nil {
-				return err
-			}
-			property, err := core.GetActionProperty(params.By)
-			if err != nil {
-				return err
-			}
-			aggregator = core.NewTimeGroupedActions(duration, property)
+			aggregator = core.NewTimeGroupedActions(params.Duration.Duration, params.By)
 
 		default:
 			return fmt.Errorf("unknown processor %s", rawProcessor.Name)
@@ -108,6 +92,8 @@ func (c *BulkConfig) UnmarshalJSON(data []byte) error {
 }
 
 func RunBulkActions(blockchain core.Blockchain, config BulkConfig) (map[string]interface{}, error) {
+	missingBlockProcessor := NewProcessor("MissingBlocks", core.NewMissingBlocks(config.StartBlock, config.EndBlock))
+	config.Processors = append(config.Processors, missingBlockProcessor)
 	blocks, err := YieldAllBlocks(config.Pattern, blockchain, config.StartBlock, config.EndBlock)
 	if err != nil {
 		return nil, err
@@ -123,7 +109,7 @@ func RunBulkActions(blockchain core.Blockchain, config BulkConfig) (map[string]i
 	result["Config"] = config
 	processorResults := make(map[string]interface{})
 	for _, processor := range config.Processors {
-		processorResults[processor.Name] = processor.Aggregator
+		processorResults[processor.Name] = processor.Aggregator.Result()
 	}
 	result["Results"] = processorResults
 	return result, nil

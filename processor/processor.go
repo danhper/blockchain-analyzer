@@ -181,12 +181,12 @@ func OutputAllMissingBlockNumbers(
 	outputFile, err := core.CreateFile(outputPath)
 	defer outputFile.Close()
 
-	blockNumbers := make(map[uint64]bool)
+	missingBlockNumbers := core.NewMissingBlocks(start, end)
 	for block := range blocks {
-		blockNumbers[block.Number()] = true
+		missingBlockNumbers.AddBlock(block)
 	}
 
-	missing := ComputeMissingBlockNumbers(blockNumbers, start, end)
+	missing := missingBlockNumbers.Compute()
 	for _, number := range missing {
 		fmt.Fprintf(outputFile, "{\"block\": %d}\n", number)
 	}

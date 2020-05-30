@@ -10,35 +10,35 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func computeBlockNumbers(reader io.Reader, blockchain core.Blockchain) map[uint64]bool {
-	blockNumbers := make(map[uint64]bool)
+func computeBlockNumbers(reader io.Reader, blockchain core.Blockchain, start, end uint64) *core.MissingBlocks {
+	missingBlocks := core.NewMissingBlocks(start, end)
 	for block := range YieldBlocks(reader, blockchain, JSONFormat) {
-		blockNumbers[block.Number()] = true
+		missingBlocks.AddBlock(block)
 	}
-	return blockNumbers
+	return missingBlocks
 }
 
 func TestComputeBlockNumbers(t *testing.T) {
 	reader := core.GetFixtureReader(core.XRPValidLedgersFilename)
 	blockchain := xrp.New()
-	blocks := computeBlockNumbers(reader, blockchain)
-	assert.Len(t, blocks, 100)
-	assert.Contains(t, blocks, uint64(54387329))
+	blocks := computeBlockNumbers(reader, blockchain, 0, 0)
+	assert.Len(t, blocks.Seen, 100)
+	assert.Contains(t, blocks.Seen, uint64(54387329))
 }
 
 func TestGetMissingBlockNumbersValid(t *testing.T) {
 	reader := core.GetFixtureReader(core.XRPValidLedgersFilename)
 	blockchain := xrp.New()
-	blockNumbers := computeBlockNumbers(reader, blockchain)
-	missing := ComputeMissingBlockNumbers(blockNumbers, 54387321, 54387329)
+	blockNumbers := computeBlockNumbers(reader, blockchain, 54387321, 54387329)
+	missing := blockNumbers.Result()
 	assert.Len(t, missing, 0)
 }
 
 func TestGetMissingBlockNumbersInvalid(t *testing.T) {
 	reader := core.GetFixtureReader(core.XRPMissingLedgersFilename)
 	blockchain := xrp.New()
-	blockNumbers := computeBlockNumbers(reader, blockchain)
-	missing := ComputeMissingBlockNumbers(blockNumbers, 123, 126)
+	missingBlockNumbers := computeBlockNumbers(reader, blockchain, 123, 126)
+	missing := missingBlockNumbers.Compute()
 	assert.Len(t, missing, 1)
 	assert.Equal(t, missing[0], uint64(124))
 }

@@ -48,6 +48,28 @@ func (p ActionProperty) String() string {
 	}
 }
 
+func (c *ActionProperty) UnmarshalJSON(data []byte) (err error) {
+	var rawProperty string
+	if err = json.Unmarshal(data, &rawProperty); err != nil {
+		return err
+	}
+	*c, err = GetActionProperty(rawProperty)
+	return err
+}
+
+type Duration struct {
+	time.Duration
+}
+
+func (d *Duration) UnmarshalJSON(b []byte) (err error) {
+	var rawDuration string
+	if err = json.Unmarshal(b, &rawDuration); err != nil {
+		return err
+	}
+	d.Duration, err = time.ParseDuration(rawDuration)
+	return err
+}
+
 type ActionsCount struct {
 	Actions     map[string]uint64
 	UniqueCount uint64
@@ -135,6 +157,10 @@ func (g *TimeGroupedActions) AddBlock(block Block) {
 	g.Actions[group].AddBlock(block)
 }
 
+func (g *TimeGroupedActions) Result() interface{} {
+	return g
+}
+
 type TimeGroupedTransactionCount struct {
 	TransactionCounts map[time.Time]int
 	GroupedBy         time.Duration
@@ -153,6 +179,10 @@ func (g *TimeGroupedTransactionCount) AddBlock(block Block) {
 		g.TransactionCounts[group] = 0
 	}
 	g.TransactionCounts[group] += block.TransactionsCount()
+}
+
+func (g *TimeGroupedTransactionCount) Result() interface{} {
+	return g
 }
 
 type ActionGroup struct {
@@ -271,6 +301,10 @@ func (g *GroupedActions) AddBlock(block Block) {
 	}
 }
 
+func (g *GroupedActions) Result() interface{} {
+	return g
+}
+
 type TransactionCounter int
 
 func NewTransactionCounter() *TransactionCounter {
@@ -280,4 +314,40 @@ func NewTransactionCounter() *TransactionCounter {
 
 func (t *TransactionCounter) AddBlock(block Block) {
 	*t += (TransactionCounter)(block.TransactionsCount())
+}
+
+func (t *TransactionCounter) Result() interface{} {
+	return t
+}
+
+type MissingBlocks struct {
+	Start uint64
+	End   uint64
+	Seen  map[uint64]bool
+}
+
+func NewMissingBlocks(start, end uint64) *MissingBlocks {
+	return &MissingBlocks{
+		Start: start,
+		End:   end,
+		Seen:  make(map[uint64]bool),
+	}
+}
+
+func (t *MissingBlocks) AddBlock(block Block) {
+	t.Seen[block.Number()] = true
+}
+
+func (t *MissingBlocks) Compute() []uint64 {
+	missing := make([]uint64, 0)
+	for blockNumber := t.Start; blockNumber <= t.End; blockNumber++ {
+		if _, ok := t.Seen[blockNumber]; !ok {
+			missing = append(missing, blockNumber)
+		}
+	}
+	return missing
+}
+
+func (t *MissingBlocks) Result() interface{} {
+	return t.Compute()
 }
