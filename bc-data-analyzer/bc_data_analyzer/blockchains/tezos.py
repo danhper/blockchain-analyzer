@@ -41,5 +41,31 @@ class Tezos(Blockchain):
         result.append(sum(a["Count"] for a in actions if a["Name"] not in top_actions))
         return result
 
-    def generate_table(self, table_name: str, results: dict) -> str:
+    def generate_table(self, table_name: str, data: dict) -> str:
+        if table_name == "top-senders":
+            return self._output_top_senders_table(data["Results"]["ActionsBySender"])
         raise ValueError("unknown table type {0}".format(table_name))
+
+    def _output_top_senders_table(self, data: dict) -> str:
+        def make_row(row):
+            receivers_count = row["Receivers"]["UniqueCount"]
+            count = row["Count"]
+            row_data = dict(name=row["Name"], count=count, avg=count / receivers_count,
+                        unique_count=row["Receivers"]["UniqueCount"])
+            return r"\tezaddr{{{name}}} & {count:,} & {unique_count:,} & {avg:.2f}".format(**row_data)
+        rows = "\\\\\n    ".join([make_row(row) for row in data["Actions"][:5]])
+        return r"""\begin{{figure*}}[tbp]
+    \footnotesize
+    \centering
+    \begin{{tabular}}{{l r r r}}
+    \toprule
+               &                &               & \bf Avg. \#\\
+               &                & \bf Unique    & \bf of transactions\\
+    \bf Sender & \bf Sent count & \bf receivers & \bf per receiver\\
+    \midrule
+    {rows}\\
+    \bottomrule
+    \end{{tabular}}
+    \caption{{Tezos accounts with the highest number of sent transactions.}}
+    \label{{tab:tezos-account-edges}}
+\end{{figure*}}""".format(rows=rows)

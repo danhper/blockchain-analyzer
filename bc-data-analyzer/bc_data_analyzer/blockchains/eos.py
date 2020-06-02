@@ -50,7 +50,7 @@ class EOS(Blockchain):
                 if n <= 1:
                     return text
                 else:
-                    return f"\\multirow{{{len(actions)}}}{{*}}{{{text}}}"
+                    return f"\\multirow{{{n}}}{{*}}{{{text}}}"
             def make_action(action):
                 name = action["Name"]
                 percentage = action["Count"] / total_actions_count * 100
