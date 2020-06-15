@@ -28,7 +28,7 @@ The `fetch` command can be used to fetch the data:
 blockchain-analyzer BLOCKCHAIN fetch -o OUTPUT_FILE --start START_BLOCK --end END_BLOCK
 
 # examples
-blockchain-analyzer eos fetch eos -o eos-blocks.jsonl --start 500000 --end 600000
+blockchain-analyzer eos fetch -o eos-blocks.jsonl --start 500000 --end 600000
 ```
 
 The `check` command can then be used to check the fetched data.
