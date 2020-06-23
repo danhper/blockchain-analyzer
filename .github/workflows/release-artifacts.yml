@@ -21,8 +21,30 @@ jobs:
             name: 'blockchain-analyzer'
             compress: 'true'
             dest: 'dist'
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+      - name: Upload Windows binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: static-binaries
-          path: 'dist'
+          upload_url: https://uploads.github.com/repos/octocat/Hello-World/releases/${{ github.ref }}/assets
+          asset_path: dist/blockchain-analyzer-windows-amd64.tar.gz
+          asset_name: blockchain-analyzer-windows-amd64.tar.gz
+          asset_content_type: application/gzip
+      - name: Upload Linux binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: https://uploads.github.com/repos/octocat/Hello-World/releases/${{ github.ref }}/assets
+          asset_path: dist/blockchain-analyzer-linux-amd64.tar.gz
+          asset_name: blockchain-analyzer-linux-amd64.tar.gz
+          asset_content_type: application/gzip
+      - name: Upload macOS binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: https://uploads.github.com/repos/octocat/Hello-World/releases/${{ github.ref }}/assets
+          asset_path: dist/blockchain-analyzer-darwin-amd64.tar.gz
+          asset_name: blockchain-analyzer-darwin-amd64.tar.gz
+          asset_content_type: application/gzip
