@@ -26,7 +26,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: https://uploads.github.com/repos/danhper/blockchain-analyzer/releases/${{ github.ref }}/assets
+          upload_url: ${{ github.event.release.upload_url }}
           asset_path: dist/blockchain-analyzer-windows-amd64.tar.gz
           asset_name: blockchain-analyzer-windows-amd64.tar.gz
           asset_content_type: application/gzip
@@ -35,7 +35,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: https://uploads.github.com/repos/danhper/blockchain-analyzer/releases/${{ github.ref }}/assets
+          upload_url: ${{ github.event.release.upload_url }}
           asset_path: dist/blockchain-analyzer-linux-amd64.tar.gz
           asset_name: blockchain-analyzer-linux-amd64.tar.gz
           asset_content_type: application/gzip
@@ -44,7 +44,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: https://uploads.github.com/repos/danhper/blockchain-analyzer/releases/${{ github.ref }}/assets
+          upload_url: ${{ github.event.release.upload_url }}
           asset_path: dist/blockchain-analyzer-darwin-amd64.tar.gz
           asset_name: blockchain-analyzer-darwin-amd64.tar.gz
           asset_content_type: application/gzip
