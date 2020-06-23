@@ -10,7 +10,13 @@ Currently supported blockchains:
 * [EOS](https://eos.io/)
 * [XRP](https://ripple.com/xrp/)
 
-## Build
+## Installation
+
+### Static binaries
+
+We provide static binaries for Windows, macOS and Linux with each [release](https://github.com/danhper/blockchain-analyzer/releases)
+
+### From source
 
 Go needs to be installed. The tool can then be installed by running
 
