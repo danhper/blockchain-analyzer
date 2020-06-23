@@ -20,3 +20,9 @@ jobs:
             package: 'cmd/blockchain-analyzer'
             name: 'blockchain-analyzer'
             compress: 'true'
+            dest: 'dist'
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: static-binaries
+          path: 'dist'
