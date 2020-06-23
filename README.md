@@ -60,3 +60,20 @@ The tool's help also contains information about what other commands can be used
 ```
 blockchain-analyzer -h
 ```
+
+
+### Academic work
+
+This tool has originally been created to analyze data for the following paper: [Revisiting Transactional Statistics of High-scalability Blockchain](https://arxiv.org/abs/2003.02693).  
+If you are using this for academic work, we would be thankful if you could cite it.
+
+```
+@misc{perez2020revisiting,
+    title={Revisiting Transactional Statistics of High-scalability Blockchain},
+    author={Daniel Perez and Jiahua Xu and Benjamin Livshits},
+    year={2020},
+    eprint={2003.02693},
+    archivePrefix={arXiv},
+    primaryClass={cs.CR}
+}
+```
