@@ -58,7 +58,7 @@ def plot_chart_area(labels, x, *ys, filename=None, **kwargs):
         plt.ylim(top=kwargs.pop("ylim"))
     plt.xticks(rotation=45)
     plt.setp(ax.xaxis.get_majorticklabels(), ha="right")
-    ax.set_ylabel("Number of Transactions")
+    ax.set_ylabel("Number of Actions")
     ax.stackplot(x, *ys, labels=labels, **kwargs)
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
     ax.ticklabel_format(scilimits=(0, 0), axis="y")
