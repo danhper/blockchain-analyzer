@@ -37,7 +37,9 @@ blockchain-analyzer BLOCKCHAIN fetch -o OUTPUT_FILE --start START_BLOCK --end EN
 blockchain-analyzer eos fetch -o eos-blocks.jsonl.gz --start 500000 --end 699999
 ```
 
-The data has the following format:
+### Data format
+
+The data has the following format
 
 - One block per line, including transactions, formatted in JSON. Documentation of block format can be found in each chain documentation
   - [EOS](https://developers.eos.io/manuals/eos/latest/nodeos/plugins/chain_api_plugin/api-reference/index#operation/get_block)
@@ -45,6 +47,8 @@ The data has the following format:
   - [XRP](https://xrpl.org/ledger.html)
 - Grouped in files of 100,000 blocks each, suffixed by the block range (e.g. `eos-blocks-500000--599999.jsonl` and `eos-blocks-600000--699999.jsonl` for the above)
 - Gziped if the `.gz` extension is added to the output file name (recommended)
+
+### Checking data
 
 The `check` command can then be used to check the fetched data. It will ensure that all the block from `--start` to `--end` exist in the given files, and output the missing blocks into `missing.jsonl` if any.
 
@@ -124,6 +128,8 @@ This includes data from October 1, 2019 to April 30, 2020 for EOS, Tezos and XRP
 | EOS        |    82152667 | 118286375 |
 | XRP        |    50399027 |  55152991 |
 | Tezos      |      630709 |    932530 |
+
+Please refer to the [Data format](https://github.com/danhper/blockchain-analyzer#data-format) section above for a description of the data format.
 
 ## Supporting other blockchains
 
