@@ -119,6 +119,35 @@ This includes data from October 1, 2019 to April 30, 2020 for EOS, Tezos and XRP
 | XRP        |    50399027 |  55152991 |
 | Tezos      |      630709 |    932530 |
 
+## Supporting other blockchains
+
+Although the framework currently only supports EOS, Tezos and XRP, it has been designed to easily support other blockchains.
+The three following interfaces need to be implemented in order to do so:
+
+```go
+type Blockchain interface {
+	FetchData(filepath string, start, end uint64) error
+	ParseBlock(rawLine []byte) (Block, error)
+	EmptyBlock() Block
+}
+
+type Block interface {
+	Number() uint64
+	TransactionsCount() int
+	Time() time.Time
+	ListActions() []Action
+}
+
+type Action interface {
+	Sender() string
+	Receiver() string
+	Name() string
+}
+```
+
+We also provide a utilities to make methods such as `FetchData` easier to implement.
+[Existing implementations](https://github.com/danhper/blockchain-analyzer/blob/master/tezos/tezos.go) can be used as a point of reference for how a new blockchain can be supported.
+
 ## Academic work
 
 This tool has originally been created to analyze data for the following paper: [Revisiting Transactional Statistics of High-scalability Blockchain](https://arxiv.org/abs/2003.02693), to be presented at [IMC'20](https://conferences.sigcomm.org/imc/2020/accepted/).  
