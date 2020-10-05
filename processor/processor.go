@@ -191,6 +191,10 @@ func OutputAllMissingBlockNumbers(
 		fmt.Fprintf(outputFile, "{\"block\": %d}\n", number)
 	}
 
+	if len(missing) > 0 {
+		return fmt.Errorf("%d missing blocks written to %s", len(missing), outputPath)
+	}
+
 	return nil
 }
 
