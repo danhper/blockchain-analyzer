@@ -37,8 +37,14 @@ blockchain-analyzer BLOCKCHAIN fetch -o OUTPUT_FILE --start START_BLOCK --end EN
 blockchain-analyzer eos fetch -o eos-blocks.jsonl.gz --start 500000 --end 699999
 ```
 
-Data will be grouped in files of 100,000 blocks, suffixed by the block range (e.g. `eos-blocks-500000--599999.jsonl` and `eos-blocks-600000--699999.jsonl` for the above), so it is preferable to use a directory specifically for this data.
-Note that the output file will be compressed automatically if it contains a `.gz` extension, which we recommend given the size and format.
+The data has the following format:
+
+- One block per line, including transactions, formatted in JSON. Documentation of block format can be found in each chain documentation
+  - [EOS](https://developers.eos.io/manuals/eos/latest/nodeos/plugins/chain_api_plugin/api-reference/index#operation/get_block)
+  - [Tezos](https://tezos.gitlab.io/api/rpc.html#get-block-id)
+  - [XRP](https://xrpl.org/ledger.html)
+- Grouped in files of 100,000 blocks each, suffixed by the block range (e.g. `eos-blocks-500000--599999.jsonl` and `eos-blocks-600000--699999.jsonl` for the above)
+- Gziped if the `.gz` extension is added to the output file name (recommended)
 
 The `check` command can then be used to check the fetched data. It will ensure that all the block from `--start` to `--end` exist in the given files, and output the missing blocks into `missing.jsonl` if any.
 
