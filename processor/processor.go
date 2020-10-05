@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -194,6 +195,8 @@ func OutputAllMissingBlockNumbers(
 	if len(missing) > 0 {
 		return fmt.Errorf("%d missing blocks written to %s", len(missing), outputPath)
 	}
+
+	os.Remove(outputPath)
 
 	return nil
 }
