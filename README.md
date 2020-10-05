@@ -2,7 +2,7 @@
 
 [![CircleCI](https://circleci.com/gh/danhper/blockchain-analyzer.svg?style=svg)](https://circleci.com/gh/danhper/blockchain-analyzer)
 
-CLI tool to fetch and analyze transactions data from multiple blockchains.
+CLI tool to fetch and analyze transactions data from several blockchains.
 
 Currently supported blockchains:
 
@@ -99,6 +99,10 @@ COMMANDS:
 OPTIONS:
    --help, -h  show help (default: false)
 ```
+
+### Interpreting results
+
+We provide Python scripts to plot and generate table out of the data from the analysis. Please check the [./bc-data-analyzer](./bc-data-analyzer) directory for more information.
 
 ## Dataset
 
