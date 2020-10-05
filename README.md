@@ -102,7 +102,8 @@ OPTIONS:
 
 ### Interpreting results
 
-We provide Python scripts to plot and generate table out of the data from the analysis. Please check the [./bc-data-analyzer](./bc-data-analyzer) directory for more information.
+We provide Python scripts to plot and generate table out of the data from the analysis.
+Please check the [bc-data-analyzer](./bc-data-analyzer) directory for more information.
 
 ## Dataset
 
