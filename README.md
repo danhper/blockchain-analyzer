@@ -162,7 +162,7 @@ We also provide a utilities to make methods such as `FetchData` easier to implem
 
 ## Academic work
 
-This tool has originally been created to analyze data for the following paper: [Revisiting Transactional Statistics of High-scalability Blockchain](https://arxiv.org/abs/2003.02693), to be presented at [IMC'20](https://conferences.sigcomm.org/imc/2020/accepted/).  
+This tool has originally been created to analyze data for the following paper: [Revisiting Transactional Statistics of High-scalability Blockchain](https://arxiv.org/abs/2003.02693), presented at [IMC'20](https://conferences.sigcomm.org/imc/2020/accepted/).  
 If you are using this for academic work, we would be thankful if you could cite it.
 
 ```
